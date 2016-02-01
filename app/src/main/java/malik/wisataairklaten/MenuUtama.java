@@ -1,5 +1,7 @@
 package malik.wisataairklaten;
 
+import android.app.ProgressDialog;
+import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentActivity;
 import android.support.v4.app.FragmentTabHost;
 import android.support.v4.app.FragmentTransaction;
@@ -9,6 +11,7 @@ import android.support.v7.app.ActionBarActivity;
 import android.os.Bundle;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.widget.TextView;
 
 import malik.wisataairklaten.adapter.TabsPagerAdapter;
 
@@ -45,6 +48,17 @@ public class MenuUtama extends ActionBarActivity implements ActionBar.TabListene
             @Override
             public void onPageSelected(int position) {
                 actionBar.setSelectedNavigationItem(position);
+                switch (position) {
+                    case 1:
+//                        ProgressDialog.show(MenuUtama.this, "Loading", "Coba", false, true);
+                        break;
+                    case 2:
+//                        GeoPhoto geo = (GeoPhoto) mAdapter.getItem(position);
+//                        geo.setHasil();
+                        break;
+                    default:
+                        break;
+                }
             }
 
             @Override

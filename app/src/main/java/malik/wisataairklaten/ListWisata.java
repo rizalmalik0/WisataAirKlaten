@@ -3,25 +3,31 @@ package malik.wisataairklaten;
 import android.content.Intent;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
+import android.support.v7.widget.LinearLayoutManager;
+import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
+import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.ListView;
+import android.widget.TextView;
 
 import java.util.ArrayList;
 import java.util.List;
 
 import malik.wisataairklaten.adapter.DataAdapter;
+import malik.wisataairklaten.adapter.RecyclerAdapter;
 import malik.wisataairklaten.model.Wisata;
 
 /**
  * Created by Rizal Malik on 27/01/2016.
  */
 public class ListWisata extends Fragment implements AdapterView.OnItemClickListener {
-    ListView lvWisata;
+    RecyclerView rvWisata;
     List<Wisata> wisata;
+    RecyclerAdapter adapter;
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
@@ -31,16 +37,19 @@ public class ListWisata extends Fragment implements AdapterView.OnItemClickListe
         data.open();
         wisata = data.getSemuaWisata();
         data.close();
+
+        //adapter
+        adapter = new RecyclerAdapter(getActivity(), wisata, RecyclerAdapter.TIPE_WISATA);
     }
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         View v = inflater.inflate(R.layout.list_wisata, container, false);
-        lvWisata = (ListView) v.findViewById(R.id.lvWisata);
+        rvWisata = (RecyclerView) v.findViewById(R.id.rvWisata);
 
-        lvWisata.setAdapter(new ArrayAdapter<Wisata>(getActivity(), android.R.layout.simple_list_item_1, wisata));
+        rvWisata.setLayoutManager(new LinearLayoutManager(rvWisata.getContext()));
 
-        lvWisata.setOnItemClickListener(this);
+        rvWisata.setAdapter(adapter);
 
         return v;
     }

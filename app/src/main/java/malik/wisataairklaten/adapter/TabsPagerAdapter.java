@@ -21,13 +21,10 @@ public class TabsPagerAdapter extends FragmentPagerAdapter {
 
         switch (index) {
             case 0:
-                // Top Rated fragment activity
                 return new ListWisata();
             case 1:
-                // Games fragment activity
                 return new ListGallery();
             case 2:
-                // Movies fragment activity
                 return new GeoPhoto();
         }
 
