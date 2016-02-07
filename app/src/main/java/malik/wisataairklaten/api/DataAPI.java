@@ -2,6 +2,7 @@ package malik.wisataairklaten.api;
 
 import java.util.List;
 
+import malik.wisataairklaten.model.Foto;
 import malik.wisataairklaten.model.JSONData;
 import malik.wisataairklaten.model.JSONPesan;
 import malik.wisataairklaten.model.Review;
@@ -29,6 +30,6 @@ public interface DataAPI {
 	public void hapusProduk(@Field("id_produk") int id_produk,
 							Callback<JSONPesan> json);
 
-	@GET("/transaksi.php")
-	public void getTransaksi(Callback<List<Review>> transaksi);
+	@GET("/tampil_foto.php")
+	public void getFoto(Callback<List<Foto>> foto);
 }

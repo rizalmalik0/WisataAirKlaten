@@ -1,24 +1,23 @@
 package malik.wisataairklaten;
 
-import android.app.ProgressDialog;
-import android.support.v4.app.Fragment;
-import android.support.v4.app.FragmentActivity;
-import android.support.v4.app.FragmentTabHost;
-import android.support.v4.app.FragmentTransaction;
 import android.support.v4.view.ViewPager;
 import android.support.v7.app.ActionBar;
-import android.support.v7.app.ActionBarActivity;
 import android.os.Bundle;
+import android.support.v7.app.AppCompatActivity;
+import android.support.v7.widget.Toolbar;
 import android.view.Menu;
-import android.view.MenuItem;
-import android.widget.TextView;
+import android.view.MenuInflater;
 
 import malik.wisataairklaten.adapter.TabsPagerAdapter;
+import malik.wisataairklaten.view.SlidingTabLayout;
 
-public class MenuUtama extends ActionBarActivity implements ActionBar.TabListener {
+public class MenuUtama extends AppCompatActivity {
     private ViewPager viewPager;
+    private SlidingTabLayout tabs;
+    private Toolbar toolbar;
     private TabsPagerAdapter mAdapter;
-    private ActionBar actionBar;
+
+    CharSequence Titles[] = {"Wisata", "Gallery", "Geo Photo"};
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -26,63 +25,24 @@ public class MenuUtama extends ActionBarActivity implements ActionBar.TabListene
         setContentView(R.layout.menu_utama);
 
         // Initilization
+        toolbar = (Toolbar) findViewById(R.id.toolbar);
+        tabs = (SlidingTabLayout) findViewById(R.id.tabs);
         viewPager = (ViewPager) findViewById(R.id.pager);
-        actionBar = getSupportActionBar();
-        mAdapter = new TabsPagerAdapter(getSupportFragmentManager());
+        setSupportActionBar(toolbar);
 
+        // set view
+        mAdapter = new TabsPagerAdapter(getSupportFragmentManager(), Titles, TabsPagerAdapter.PAGER_MENU_UTAMA, TabsPagerAdapter.ID_WISATA_NULL);
         viewPager.setAdapter(mAdapter);
-        actionBar.setIcon(R.drawable.ic_launcher);
-        actionBar.setNavigationMode(ActionBar.NAVIGATION_MODE_TABS);
-        actionBar.setDisplayShowHomeEnabled(true);
-
-        // Adding Tabs
-        actionBar.addTab(actionBar.newTab().setText("Wisata")
-                .setTabListener(this));
-        actionBar.addTab(actionBar.newTab().setText("Gallery")
-                .setTabListener(this));
-        actionBar.addTab(actionBar.newTab().setText("Geo Photo")
-                .setTabListener(this));
-
-        viewPager.setOnPageChangeListener(new ViewPager.OnPageChangeListener() {
-
-            @Override
-            public void onPageSelected(int position) {
-                actionBar.setSelectedNavigationItem(position);
-                switch (position) {
-                    case 1:
-//                        ProgressDialog.show(MenuUtama.this, "Loading", "Coba", false, true);
-                        break;
-                    case 2:
-//                        GeoPhoto geo = (GeoPhoto) mAdapter.getItem(position);
-//                        geo.setHasil();
-                        break;
-                    default:
-                        break;
-                }
-            }
-
-            @Override
-            public void onPageScrolled(int arg0, float arg1, int arg2) {
-            }
-
-            @Override
-            public void onPageScrollStateChanged(int arg0) {
-            }
-        });
+        tabs.setSelectedIndicatorColors(getResources().getColor(R.color.accent_material_dark));
+        tabs.setDistributeEvenly(true);
+        tabs.setViewPager(viewPager);
     }
 
     @Override
-    public void onTabSelected(ActionBar.Tab tab, FragmentTransaction fragmentTransaction) {
-        viewPager.setCurrentItem(tab.getPosition());
-    }
+    public boolean onCreateOptionsMenu(Menu menu) {
+        MenuInflater inflater = getMenuInflater();
+        inflater.inflate(R.menu.menu_utama, menu);
 
-    @Override
-    public void onTabUnselected(ActionBar.Tab tab, FragmentTransaction fragmentTransaction) {
-
-    }
-
-    @Override
-    public void onTabReselected(ActionBar.Tab tab, FragmentTransaction fragmentTransaction) {
-
+        return true;
     }
 }

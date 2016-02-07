@@ -7,11 +7,13 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageView;
 import android.widget.TextView;
-import android.widget.Toast;
+
+import com.squareup.picasso.Picasso;
 
 import java.util.List;
 
 import malik.wisataairklaten.R;
+import malik.wisataairklaten.api.VariableGlobal;
 import malik.wisataairklaten.model.Foto;
 import malik.wisataairklaten.model.Wisata;
 
@@ -25,7 +27,7 @@ public class RecyclerAdapter<T> extends RecyclerView.Adapter<RecyclerView.ViewHo
 
     public static final int TIPE_WISATA = 1;
     public static final int TIPE_FOTO = 2;
-
+    public static final int TIPE_FASILITAS = 3;
 
     public RecyclerAdapter(Context mContext, List<T> listData, int type) {
         this.listData = listData;
@@ -38,15 +40,20 @@ public class RecyclerAdapter<T> extends RecyclerView.Adapter<RecyclerView.ViewHo
         View v;
         switch (type) {
             case TIPE_WISATA:
-                v = LayoutInflater.from(mContext).inflate(R.layout.recycler_item, parent, false);
+                v = LayoutInflater.from(mContext).inflate(R.layout.recycler_wisata_item, parent, false);
                 WisataHolder wisataHolder = new WisataHolder(v);
 
                 return wisataHolder;
             case TIPE_FOTO:
-                v = LayoutInflater.from(mContext).inflate(R.layout.grid_item, parent, false);
+                v = LayoutInflater.from(mContext).inflate(R.layout.recycler_foto_item, parent, false);
                 FotoHolder fotoHolder = new FotoHolder(v);
 
                 return fotoHolder;
+            case TIPE_FASILITAS:
+                v = LayoutInflater.from(mContext).inflate(R.layout.recycler_fasilitas_item, parent, false);
+                FasilitasHolder fasilitasHolder = new FasilitasHolder(v);
+
+                return fasilitasHolder;
             default:
                 return null;
         }
@@ -60,11 +67,27 @@ public class RecyclerAdapter<T> extends RecyclerView.Adapter<RecyclerView.ViewHo
                 Wisata w = (Wisata) listData.get(position);
 
                 wisataHolder.txtNama.setText(w.getNama_wisata());
-                wisataHolder.txtFasilitas.setText(w.getFasilitas());
+
+                Picasso.with(mContext).load("file:///android_asset/gambar/" + w.getFoto()).fit().centerCrop().into(wisataHolder.imgItem);
                 break;
             case TIPE_FOTO:
                 FotoHolder fotoHolder = (FotoHolder) holder;
                 Foto f = (Foto) listData.get(position);
+
+                Picasso.with(mContext).load(VariableGlobal.URL_GAMBAR + f.getNama_foto()).fit().centerCrop().into(fotoHolder.imgItem);
+
+                break;
+            case TIPE_FASILITAS:
+                FasilitasHolder fasilitasHolder = (FasilitasHolder) holder;
+                String s = (String) listData.get(position);
+
+                if (position == 0) {
+                    fasilitasHolder.txtItem.setText(s);
+                    Picasso.with(mContext).load("file:///android_asset/icon/background.png").fit().into(fasilitasHolder.imgItem);
+                } else {
+                    Picasso.with(mContext).load("file:///android_asset/icon/" + s + ".png").error(R.drawable.fasilitas).fit().into(fasilitasHolder.imgItem);
+                }
+
 
                 break;
         }
@@ -75,21 +98,15 @@ public class RecyclerAdapter<T> extends RecyclerView.Adapter<RecyclerView.ViewHo
         return listData.size();
     }
 
-    public class WisataHolder extends RecyclerView.ViewHolder implements View.OnClickListener {
-        TextView txtNama, txtFasilitas;
+    public class WisataHolder extends RecyclerView.ViewHolder {
+        TextView txtNama;
+        ImageView imgItem;
 
         public WisataHolder(View itemView) {
             super(itemView);
-            itemView.setOnClickListener(this);
 
             txtNama = (TextView) itemView.findViewById(R.id.txtNamaWisata);
-            txtFasilitas = (TextView) itemView.findViewById(R.id.txtFasilitas);
-        }
-
-        @Override
-        public void onClick(View v) {
-
-            Toast.makeText(v.getContext(), "position = " + ((Wisata) listData.get(getPosition())).getNama_wisata(), Toast.LENGTH_SHORT).show();
+            imgItem = (ImageView) itemView.findViewById(R.id.imgItem);
         }
     }
 
@@ -99,6 +116,18 @@ public class RecyclerAdapter<T> extends RecyclerView.Adapter<RecyclerView.ViewHo
         public FotoHolder(View itemView) {
             super(itemView);
 
+            imgItem = (ImageView) itemView.findViewById(R.id.imgItem);
+        }
+    }
+
+    public class FasilitasHolder extends RecyclerView.ViewHolder {
+        TextView txtItem;
+        ImageView imgItem;
+
+        public FasilitasHolder(View itemView) {
+            super(itemView);
+
+            txtItem = (TextView) itemView.findViewById(R.id.txtItem);
             imgItem = (ImageView) itemView.findViewById(R.id.imgItem);
         }
     }

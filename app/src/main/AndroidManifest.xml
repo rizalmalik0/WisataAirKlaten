@@ -1,15 +1,17 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
-    package="malik.wisataairklaten" >
+    package="malik.wisataairklaten">
+
+    <uses-permission android:name="android.permission.INTERNET"></uses-permission>
 
     <application
         android:allowBackup="true"
-        android:icon="@drawable/ic_launcher"
+        android:icon="@drawable/logo"
         android:label="@string/app_name"
-        android:theme="@style/AppTheme" >
+        android:theme="@style/AppTheme">
         <activity
-            android:name=".MenuUtama"
-            android:label="@string/app_name" >
+            android:name=".Splash"
+            android:label="@string/app_name">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
 
@@ -17,6 +19,8 @@
             </intent-filter>
         </activity>
         <activity android:name=".DetailWisata"></activity>
+        <activity android:name=".MenuUtama"></activity>
+        <activity android:name=".DetailGalery"></activity>
     </application>
 
 </manifest>
