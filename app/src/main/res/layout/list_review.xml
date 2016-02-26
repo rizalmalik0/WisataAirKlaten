@@ -1,0 +1,119 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:id="@+id/layout_list_review"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="vertical"
+    android:paddingBottom="5dp"
+    android:paddingTop="5dp">
+
+    <android.support.v7.widget.CardView
+        android:visibility="gone"
+        android:id="@+id/layout_review"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginLeft="10dp"
+        android:layout_marginRight="10dp"
+        android:foreground="?android:attr/selectableItemBackground">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:orientation="vertical"
+            android:padding="5dp">
+
+            <RatingBar
+                android:id="@+id/ratingBar"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center_horizontal"
+                android:progressDrawable="@drawable/custom_rating"
+                android:stepSize="1.0" />
+
+            <View
+                android:layout_width="match_parent"
+                android:layout_height="2dp"
+                android:background="#e1e3e4" />
+
+            <TextView
+                android:id="@+id/txtReview"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:gravity="center_horizontal"
+                android:padding="15dp"
+                android:textAppearance="?android:attr/textAppearanceMedium"
+                android:visibility="gone" />
+
+            <LinearLayout
+                android:id="@+id/layout_post_review"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:visibility="gone">
+
+                <EditText
+                    android:id="@+id/etPostReview"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:gravity="top"
+                    android:hint="Review wisata"
+                    android:inputType="textMultiLine"
+                    android:isScrollContainer="true"
+                    android:maxLength="200"
+                    android:minHeight="100dp"
+                    android:padding="15dp" />
+
+                <com.dd.processbutton.iml.ActionProcessButton
+                    android:id="@+id/btnPost"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="Post"
+                    android:textColor="@android:color/white"
+                    app:pb_colorComplete="@color/ColorPrimary"
+                    app:pb_colorNormal="@color/ColorPrimary"
+                    app:pb_colorPressed="@color/ColorPrimaryDark"
+                    app:pb_colorProgress="@color/backWhite"
+                    app:pb_textComplete="Post"
+                    app:pb_textError="Post"
+                    app:pb_textProgress="Posting..." />
+            </LinearLayout>
+        </LinearLayout>
+    </android.support.v7.widget.CardView>
+
+    <FrameLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent">
+
+        <android.support.v4.widget.SwipeRefreshLayout
+            android:id="@+id/swGallery"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content">
+
+            <android.support.v7.widget.RecyclerView
+                android:id="@+id/rvReview"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"></android.support.v7.widget.RecyclerView>
+        </android.support.v4.widget.SwipeRefreshLayout>
+
+
+        <com.balysv.materialripple.MaterialRippleLayout xmlns:app="http://schemas.android.com/apk/res-auto"
+            android:id="@+id/ripple"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            app:mrl_rippleColor="@color/ColorPrimary"
+            app:mrl_rippleDuration="1000">
+
+            <Button
+                android:id="@+id/btnCobaLagi"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:layout_gravity="center_horizontal"
+                android:background="@drawable/custom_background"
+                android:text="COBA LAGI"
+                android:textColor="@color/ColorPrimary"
+                android:visibility="gone" />
+        </com.balysv.materialripple.MaterialRippleLayout>
+    </FrameLayout>
+</LinearLayout>

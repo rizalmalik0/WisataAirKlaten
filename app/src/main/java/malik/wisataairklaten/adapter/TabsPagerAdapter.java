@@ -3,11 +3,13 @@ package malik.wisataairklaten.adapter;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentPagerAdapter;
+import android.view.ViewGroup;
 
 import malik.wisataairklaten.GeoPhoto;
 import malik.wisataairklaten.ListGallery;
 import malik.wisataairklaten.ListWisata;
-import malik.wisataairklaten.ReviewWisata;
+import malik.wisataairklaten.ListReview;
+import malik.wisataairklaten.view.CustomPager;
 
 /**
  * Created by Rizal Malik on 27/01/2016.
@@ -17,25 +19,28 @@ public class TabsPagerAdapter extends FragmentPagerAdapter {
     ListWisata listWisata;
     ListGallery listGallery;
     GeoPhoto geoPhoto;
-    ReviewWisata reviewWisata;
+    ListReview reviewWisata;
 
     int count = 3;
     int tipe;
-    int id_wisata;
+    int id;
 
-    public static final int ID_WISATA_NULL = 0;
+    private int mCurrentPosition = -1;
+
+    public static final int ID_NULL = 0;
     public static final int PAGER_DETAIL_WISATA = 1;
     public static final int PAGER_MENU_UTAMA = 2;
+    public static final int PAGER_PROFIL = 3;
 
-    public TabsPagerAdapter(FragmentManager fm, CharSequence judul[], int tipe, int id_wisata) {
+    public TabsPagerAdapter(FragmentManager fm, CharSequence judul[], int tipe, int id) {
         super(fm);
 
         this.judul = judul;
         this.tipe = tipe;
 
-        if (id_wisata != ID_WISATA_NULL) {
-            this.id_wisata = id_wisata;
-        }
+        if (id != ID_NULL) this.id = id;
+
+        if (tipe == PAGER_PROFIL) this.count = 1;
     }
 
     @Override
@@ -45,15 +50,15 @@ public class TabsPagerAdapter extends FragmentPagerAdapter {
                 switch (index) {
                     case 0:
                         if (listGallery == null)
-                            listGallery = new ListGallery();
+                            listGallery = ListGallery.newIntance(id, ListGallery.GALLERY_WISATA);
                         return listGallery;
                     case 1:
                         if (reviewWisata == null)
-                            reviewWisata = new ReviewWisata();
+                            reviewWisata = ListReview.newIntance(id);
                         return reviewWisata;
                     case 2:
                         if (listWisata == null)
-                            listWisata = ListWisata.newIntance(id_wisata);
+                            listWisata = ListWisata.newIntance(id);
                         return listWisata;
                 }
                 break;
@@ -65,7 +70,7 @@ public class TabsPagerAdapter extends FragmentPagerAdapter {
                         return listWisata;
                     case 1:
                         if (listGallery == null)
-                            listGallery = new ListGallery();
+                            listGallery = ListGallery.newIntance(0, ListGallery.GALLERY_SEMUA);
                         return listGallery;
                     case 2:
                         if (geoPhoto == null)
@@ -73,6 +78,13 @@ public class TabsPagerAdapter extends FragmentPagerAdapter {
                         return geoPhoto;
                 }
                 break;
+            case PAGER_PROFIL:
+                switch (index) {
+                    case 0:
+                        if (listGallery == null)
+                            listGallery = ListGallery.newIntance(id, ListGallery.GALLERY_USER);
+                        return listGallery;
+                }
         }
 
         return null;
@@ -92,4 +104,18 @@ public class TabsPagerAdapter extends FragmentPagerAdapter {
     }
 
 
+    @Override
+    public void setPrimaryItem(ViewGroup container, int position, Object object) {
+        super.setPrimaryItem(container, position, object);
+        if (container instanceof CustomPager) {
+            if (position != mCurrentPosition) {
+                Fragment fragment = (Fragment) object;
+                CustomPager pager = (CustomPager) container;
+                if (fragment != null && fragment.getView() != null) {
+                    mCurrentPosition = position;
+                    pager.measureCurrentView(fragment.getView());
+                }
+            }
+        }
+    }
 }

@@ -4,5 +4,8 @@
     <string name="app_name">Wisata Air Klaten</string>
     <string name="hello_world">Hello world!</string>
     <string name="action_settings">Settings</string>
+    <string name="kritik_saran"><u>Kritik dan Saran</u></string>
+    <string name="hubungi_kami"><u>Hubungi Kami</u></string>
+    <string name="laporan"><u>Laporkan Masalah</u></string>
 
 </resources>

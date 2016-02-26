@@ -11,26 +11,36 @@
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="150dp"
-        android:padding="5dp"
-        android:orientation="vertical">
+        android:orientation="vertical"
+        android:padding="5dp">
 
         <ImageView
             android:id="@+id/imgItem"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_weight="1"/>
+            android:layout_weight="1" />
 
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
+            android:gravity="center_vertical"
             android:padding="2dp">
 
             <TextView
                 android:id="@+id/txtNamaWisata"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
+                android:layout_weight="1"
                 android:text="Nama Wisata"
                 android:textAppearance="?android:attr/textAppearanceMedium" />
+
+            <RatingBar
+                android:id="@+id/rbWisata"
+                style="?android:attr/ratingBarStyleSmall"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:progressDrawable="@drawable/custom_rating_small"
+                android:stepSize="0.01" />
 
         </LinearLayout>
     </LinearLayout>

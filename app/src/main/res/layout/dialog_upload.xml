@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent">
+
+    <LinearLayout
+        android:id="@+id/dialog_upload"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_marginTop="15dp"
+        android:orientation="vertical">
+
+        <malik.wisataairklaten.view.SquareImageView
+            android:id="@+id/imgUpload"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent" />
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:orientation="vertical"
+            android:padding="10dp">
+
+            <EditText
+                android:id="@+id/etPostUpload"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:gravity="top"
+                android:hint="Deskripsi"
+                android:inputType="textMultiLine"
+                android:maxLength="200"
+                android:minHeight="100dp"
+                android:padding="10dp" />
+
+            <com.dd.processbutton.iml.ActionProcessButton
+                android:id="@+id/btnPostUpload"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Upload"
+                android:textColor="@android:color/white"
+                app:pb_colorNormal="@color/ColorPrimary"
+                app:pb_colorPressed="@color/ColorPrimaryDark" />
+        </LinearLayout>
+    </LinearLayout>
+</ScrollView>

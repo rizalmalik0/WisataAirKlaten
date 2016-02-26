@@ -1,5 +1,7 @@
 package malik.wisataairklaten.model;
 
+import java.io.Serializable;
+
 /**
  * Created by Rizal Malik on 31/01/2016.
  */
@@ -7,6 +9,7 @@ public class Foto {
     int id_foto;
     String nama_foto;
     String deskripsi;
+    String tanggal;
     User user;
     Wisata wisata;
 
@@ -51,5 +54,13 @@ public class Foto {
 
     public void setWisata(Wisata wisata) {
         this.wisata = wisata;
+    }
+
+    public String getTanggal() {
+        return tanggal;
+    }
+
+    public void setTanggal(String tanggal) {
+        this.tanggal = tanggal;
     }
 }

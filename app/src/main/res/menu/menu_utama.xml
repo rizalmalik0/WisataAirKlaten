@@ -11,6 +11,11 @@
         android:title="Registrasi"
         app:showAsAction="never" />
     <item
+        android:id="@+id/menu_profil"
+        android:title="Profil"
+        app:showAsAction="never"
+        android:visible="false"/>
+    <item
         android:id="@+id/menu_update"
         android:title="Update"
         app:showAsAction="never" />
@@ -18,4 +23,9 @@
         android:id="@+id/menu_about"
         android:title="About"
         app:showAsAction="never" />
+    <item
+        android:id="@+id/menu_logout"
+        android:title="Logout"
+        app:showAsAction="never"
+        android:visible="false"/>
 </menu>

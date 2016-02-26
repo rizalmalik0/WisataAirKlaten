@@ -2,7 +2,10 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     package="malik.wisataairklaten">
 
-    <uses-permission android:name="android.permission.INTERNET"></uses-permission>
+    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
+    <uses-permission android:name="android.permission.INTERNET" />
+    <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
+    <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
 
     <application
         android:allowBackup="true"
@@ -21,6 +24,18 @@
         <activity android:name=".DetailWisata"></activity>
         <activity android:name=".MenuUtama"></activity>
         <activity android:name=".DetailGalery"></activity>
-    </application>
+        <activity android:name=".Login"></activity>
+        <activity android:name=".Registrasi"></activity>
+        <activity android:name=".Map"></activity>
+        <activity android:name=".Profil"></activity>
+        <activity android:name=".About"></activity>
 
+        <meta-data
+            android:name="com.google.android.maps.v2.API_KEY"
+            android:value="AIzaSyAiANYu1_sBuIp5L_ZXM6yvA-J3tYXO4OI" />
+        <meta-data
+            android:name="com.google.android.gms.version"
+            android:value="@integer/google_play_services_version" />
+
+    </application>
 </manifest>

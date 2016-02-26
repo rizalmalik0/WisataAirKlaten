@@ -11,6 +11,12 @@ public class User {
     public User() {
     }
 
+    public User(int id_user, String username, String nama) {
+        this.id_user = id_user;
+        this.username = username;
+        this.nama = nama;
+    }
+
     public int getId_user() {
         return id_user;
     }

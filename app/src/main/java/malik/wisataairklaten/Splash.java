@@ -31,4 +31,9 @@ public class Splash extends Activity {
         timer.start();
 
     }
+
+    @Override
+    public void onBackPressed() {
+
+    }
 }

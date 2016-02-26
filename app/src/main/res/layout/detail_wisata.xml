@@ -43,7 +43,7 @@
         </android.support.design.widget.CollapsingToolbarLayout>
     </android.support.design.widget.AppBarLayout>
 
-    <android.support.v4.widget.NestedScrollView
+    <malik.wisataairklaten.view.CustomNestedScroll
         android:id="@+id/nest_scrollview"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
@@ -71,6 +71,7 @@
                 android:clickable="true"
                 android:focusable="true"
                 android:foreground="?android:attr/selectableItemBackground"
+                android:onClick="map"
                 card_view:cardElevation="4dp"
                 card_view:cardUseCompatPadding="true">
 
@@ -106,11 +107,11 @@
                 app:tabGravity="fill"
                 app:tabMode="fixed" />
 
-            <android.support.v4.view.ViewPager
+            <malik.wisataairklaten.view.CustomPager
                 android:id="@+id/pager"
                 android:layout_width="match_parent"
                 android:layout_height="400dp"
-                android:background="@color/background_material_light"></android.support.v4.view.ViewPager>
+                android:background="@color/background_material_light"></malik.wisataairklaten.view.CustomPager>
         </LinearLayout>
-    </android.support.v4.widget.NestedScrollView>
+    </malik.wisataairklaten.view.CustomNestedScroll>
 </android.support.design.widget.CoordinatorLayout>

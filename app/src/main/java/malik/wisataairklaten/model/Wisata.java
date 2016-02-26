@@ -6,11 +6,12 @@ package malik.wisataairklaten.model;
 public class Wisata {
     int id_wisata;
     String nama_wisata;
-    String tipe_wisata;
+    String kedalaman;
     String fasilitas;
     String foto;
     double latitude;
     double longitude;
+    float rating;
 
     public Wisata() {
     }
@@ -31,12 +32,12 @@ public class Wisata {
         this.nama_wisata = nama_wisata;
     }
 
-    public String getTipe_wisata() {
-        return tipe_wisata;
+    public String getKedalaman() {
+        return kedalaman;
     }
 
-    public void setTipe_wisata(String tipe_wisata) {
-        this.tipe_wisata = tipe_wisata;
+    public void setKedalaman(String kedalaman) {
+        this.kedalaman = kedalaman;
     }
 
     public String getFasilitas() {
@@ -69,6 +70,14 @@ public class Wisata {
 
     public void setLongitude(double longitude) {
         this.longitude = longitude;
+    }
+
+    public float getRating() {
+        return rating;
+    }
+
+    public void setRating(float rating) {
+        this.rating = rating;
     }
 
     @Override

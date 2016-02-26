@@ -3,18 +3,18 @@ package malik.wisataairklaten;
 import android.content.Intent;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
-import android.support.v4.app.FragmentTransaction;
-import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 
+import org.solovyev.android.views.llm.LinearLayoutManager;
+
 import java.util.List;
 
 import malik.wisataairklaten.adapter.DataAdapter;
 import malik.wisataairklaten.adapter.RecyclerAdapter;
-import malik.wisataairklaten.adapter.RecyclerItemClickListener;
+import malik.wisataairklaten.view.RecyclerItemClickListener;
 import malik.wisataairklaten.model.Wisata;
 
 /**
@@ -52,7 +52,7 @@ public class ListWisata extends Fragment implements RecyclerItemClickListener.On
         rvWisata = (RecyclerView) v.findViewById(R.id.rvWisata);
 
         // adapter
-        rvWisata.setLayoutManager(new LinearLayoutManager(rvWisata.getContext()));
+        rvWisata.setLayoutManager(new LinearLayoutManager(rvWisata.getContext(), android.support.v7.widget.LinearLayoutManager.VERTICAL, false));
         rvWisata.setAdapter(adapter);
         rvWisata.setNestedScrollingEnabled(false);
 
