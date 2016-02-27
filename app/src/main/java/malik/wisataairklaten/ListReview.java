@@ -73,8 +73,8 @@ public class ListReview extends Fragment implements View.OnClickListener, SwipeR
     boolean last = false;
     boolean login;
     boolean edit = false;
-    int id_user, id_wisata;
 
+    int id_user, id_wisata;
     final int load_count = 5;
 
     @Override
@@ -158,11 +158,11 @@ public class ListReview extends Fragment implements View.OnClickListener, SwipeR
                 last = reviews.size() < load_count;
                 if (last) adapter.setFooter(false);
 
-                review.clear();
                 review.addAll(reviews);
                 swReview.setRefreshing(false);
                 ripple.setVisibility(View.GONE);
                 btnCobaLagi.setVisibility(View.GONE);
+
                 adapter.notifyDataSetChanged();
             }
 
@@ -216,19 +216,16 @@ public class ListReview extends Fragment implements View.OnClickListener, SwipeR
             @Override
             public void success(List<Review> reviews, Response response) {
                 load = false;
+                review.addAll(review.size(), reviews);
 
                 last = reviews.size() < load_count;
                 if (last) adapter.setFooter(false);
-
-                adapter.setFooter(false);
                 adapter.notifyDataSetChanged();
-
-                Toast.makeText(getActivity(), "Load More", Toast.LENGTH_SHORT).show();
             }
 
             @Override
             public void failure(RetrofitError retrofitError) {
-
+                load = false;
             }
         });
     }

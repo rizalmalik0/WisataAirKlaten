@@ -116,7 +116,7 @@ public class RecyclerAdapter<T> extends RecyclerView.Adapter<RecyclerView.ViewHo
                             Picasso.with(mContext).load(R.drawable.add_foto).placeholder(R.color.backWhite).fit().into(fotoHolder.imgItem);
                             break;
                         default:
-                            Picasso.with(mContext).load(VariableGlobal.URL_GAMBAR + p.getNama_foto()).placeholder(R.color.backWhite).fit().centerCrop().into(fotoHolder.imgItem);
+                            Picasso.with(mContext).load(VariableGlobal.URL_GAMBAR + p.getUser().getId_user() + "/" + p.getNama_foto()).placeholder(R.color.backWhite).fit().centerCrop().into(fotoHolder.imgItem);
                             break;
                     }
                     break;

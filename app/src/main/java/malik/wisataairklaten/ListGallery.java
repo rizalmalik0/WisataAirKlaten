@@ -1,5 +1,6 @@
 package malik.wisataairklaten;
 
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.database.Cursor;
@@ -35,6 +36,7 @@ import java.util.Map;
 
 import malik.wisataairklaten.adapter.RecyclerAdapter;
 import malik.wisataairklaten.model.JSONData;
+import malik.wisataairklaten.model.JSONPesan;
 import malik.wisataairklaten.model.User;
 import malik.wisataairklaten.view.RecyclerItemClickListener;
 import malik.wisataairklaten.api.DataAPI;
@@ -69,7 +71,7 @@ public class ListGallery extends Fragment implements View.OnClickListener, Swipe
 
     boolean load = true;
     boolean upload = false;
-    boolean suksesUpload = false;
+    boolean suksesUpload = true;
     boolean sukses = false;
     boolean last = false;
     boolean login;
@@ -91,6 +93,7 @@ public class ListGallery extends Fragment implements View.OnClickListener, Swipe
 
         foto = new ArrayList<Foto>();
         adapter = new RecyclerAdapter(getActivity(), foto, RecyclerAdapter.TIPE_FOTO);
+        preferences = PreferenceManager.getDefaultSharedPreferences(getActivity());
 
         // get tipe
         tipe = getArguments().getInt("tipe", 1);
@@ -99,7 +102,6 @@ public class ListGallery extends Fragment implements View.OnClickListener, Swipe
                 break;
             case GALLERY_WISATA:
                 posisi = 1;
-                preferences = PreferenceManager.getDefaultSharedPreferences(getActivity());
                 login = preferences.getBoolean("login", false);
                 id_user = preferences.getInt("id_user", 0);
                 username = preferences.getString("username", "");
@@ -211,6 +213,7 @@ public class ListGallery extends Fragment implements View.OnClickListener, Swipe
             public void success(List<Foto> fotos, Response response) {
                 load = false;
                 sukses = true;
+
                 last = fotos.size() < load_count;
                 if (last) adapter.setFooter(false);
 
@@ -227,7 +230,6 @@ public class ListGallery extends Fragment implements View.OnClickListener, Swipe
                 load = false;
                 swGallery.setRefreshing(false);
                 btnCobaLagi.setVisibility(View.VISIBLE);
-                Toast.makeText(getActivity(), retrofitError.getMessage() + "", Toast.LENGTH_SHORT).show();
             }
         });
     }
@@ -239,20 +241,17 @@ public class ListGallery extends Fragment implements View.OnClickListener, Swipe
             @Override
             public void success(List<Foto> fotos, Response response) {
                 load = false;
+                foto.addAll(foto.size(), fotos);
 
                 last = fotos.size() < load_count;
                 if (last) adapter.setFooter(false);
-
                 adapter.notifyDataSetChanged();
-
-                Toast.makeText(getActivity(), "Load More Foto", Toast.LENGTH_SHORT).show();
             }
 
             @Override
             public void failure(RetrofitError retrofitError) {
                 load = false;
                 lastVisiblesItems = 0;
-                Toast.makeText(getActivity(), "Gagal ", Toast.LENGTH_SHORT).show();
             }
         });
     }
@@ -318,20 +317,16 @@ public class ListGallery extends Fragment implements View.OnClickListener, Swipe
             @Override
             public void success(List<Foto> fotos, Response response) {
                 load = false;
+                foto.addAll(foto.size(), fotos);
 
                 last = fotos.size() < load_count;
                 if (last) adapter.setFooter(false);
-
                 adapter.notifyDataSetChanged();
-
-                Toast.makeText(getActivity(), "Load More Foto", Toast.LENGTH_SHORT).show();
             }
 
             @Override
             public void failure(RetrofitError retrofitError) {
                 load = false;
-                lastVisiblesItems = 0;
-                Toast.makeText(getActivity(), "Gagal ", Toast.LENGTH_SHORT).show();
             }
         });
     }
@@ -372,19 +367,16 @@ public class ListGallery extends Fragment implements View.OnClickListener, Swipe
             @Override
             public void success(List<Foto> fotos, Response response) {
                 load = false;
+                foto.addAll(foto.size(), fotos);
 
                 last = fotos.size() < load_count;
                 if (last) adapter.setFooter(false);
-
                 adapter.notifyDataSetChanged();
-
-                Toast.makeText(getActivity(), "Load More Foto", Toast.LENGTH_SHORT).show();
             }
 
             @Override
             public void failure(RetrofitError retrofitError) {
                 load = false;
-                Toast.makeText(getActivity(), "Gagal ", Toast.LENGTH_SHORT).show();
             }
         });
     }
@@ -403,9 +395,9 @@ public class ListGallery extends Fragment implements View.OnClickListener, Swipe
         map.put("id_wisata", id_wisata + "");
         map.put("deskripsi", deskripsi);
 
-        api.uploadFoto(typedImage, map, new Callback<JSONData<String>>() {
+        api.uploadFoto(typedImage, map, new Callback<JSONPesan>() {
             @Override
-            public void success(JSONData<String> stringJSONData, Response response) {
+            public void success(JSONPesan pesan, Response response) {
                 upload = false;
                 suksesUpload = true;
 
@@ -448,6 +440,46 @@ public class ListGallery extends Fragment implements View.OnClickListener, Swipe
                             }
                         });
                 snackbar.show();
+            }
+        });
+    }
+
+    // DELETE
+    public void hapusFoto(final int position) {
+        load = true;
+        swGallery.setRefreshing(true);
+
+        api.deleteFoto(foto.get(position).getId_foto(), id_user, new Callback<JSONPesan>() {
+            @Override
+            public void success(JSONPesan jsonPesan, Response response) {
+                load = false;
+                swGallery.setRefreshing(false);
+
+                if (jsonPesan.getStatus() == 1) {
+                    foto.remove(position);
+                    adapter.notifyItemRemoved(position);
+                } else {
+                    Snackbar.make(layoutGallery, "Gagal menghapus foto", Snackbar.LENGTH_LONG)
+                            .setAction("Coba lagi", new View.OnClickListener() {
+                                @Override
+                                public void onClick(View v) {
+                                    hapusFoto(position);
+                                }
+                            }).show();
+                }
+            }
+
+            @Override
+            public void failure(RetrofitError retrofitError) {
+                load = false;
+                swGallery.setRefreshing(false);
+                Snackbar.make(layoutGallery, "Gagal menghapus foto", Snackbar.LENGTH_LONG)
+                        .setAction("Coba lagi", new View.OnClickListener() {
+                            @Override
+                            public void onClick(View v) {
+                                hapusFoto(position);
+                            }
+                        }).show();
             }
         });
     }
@@ -531,51 +563,51 @@ public class ListGallery extends Fragment implements View.OnClickListener, Swipe
 
     @Override
     public void onItemClick(View view, int position) {
-        switch (foto.get(position).getId_foto()) {
-            case -1:
-                if (!upload && !suksesUpload) {
-                    Button btnUpload = (Button) view.findViewById(R.id.btnUpload);
-                    ProgressBar pbUpload = (ProgressBar) view.findViewById(R.id.pbUpload);
+        if (position != foto.size()) {
+            switch (foto.get(position).getId_foto()) {
+                case -1:
+                    if (!upload && !suksesUpload) {
+                        Button btnUpload = (Button) view.findViewById(R.id.btnUpload);
+                        ProgressBar pbUpload = (ProgressBar) view.findViewById(R.id.pbUpload);
 
-                    btnUpload.setVisibility(View.GONE);
-                    pbUpload.setVisibility(View.VISIBLE);
+                        btnUpload.setVisibility(View.GONE);
+                        pbUpload.setVisibility(View.VISIBLE);
 
-                    snackbar.dismiss();
-                    uploadFoto();
-                } else {
-                    if (position != foto.size()) {
-                        Intent i = new Intent(getActivity(), DetailGalery.class);
-                        i.putExtra("id_foto", foto.get(position).getId_foto());
-                        i.putExtra("nama_foto", foto.get(position).getNama_foto());
-                        i.putExtra("tanggal", foto.get(position).getTanggal());
-                        i.putExtra("deskripsi", foto.get(position).getDeskripsi());
-                        i.putExtra("username", foto.get(position).getUser().getUsername());
-                        i.putExtra("nama", foto.get(position).getUser().getNama());
-                        i.putExtra("id_user", foto.get(position).getUser().getId_user());
-                        startActivity(i);
+                        snackbar.dismiss();
+                        uploadFoto();
+                    } else {
+                        if (position != foto.size()) {
+                            Intent i = new Intent(getActivity(), DetailGalery.class);
+                            i.putExtra("id_foto", foto.get(position).getId_foto());
+                            i.putExtra("nama_foto", foto.get(position).getNama_foto());
+                            i.putExtra("tanggal", foto.get(position).getTanggal());
+                            i.putExtra("deskripsi", foto.get(position).getDeskripsi());
+                            i.putExtra("username", foto.get(position).getUser().getUsername());
+                            i.putExtra("nama", foto.get(position).getUser().getNama());
+                            i.putExtra("id_user", foto.get(position).getUser().getId_user());
+                            startActivity(i);
+                        }
                     }
-                }
 
-                break;
-            case 0:
-                if (login)
-                    galeri();
-                else {
-                    Snackbar snackbar = Snackbar
-                            .make(layoutGallery, "Login untuk upload Foto", Snackbar.LENGTH_LONG)
-                            .setAction("LOGIN", new View.OnClickListener() {
-                                @Override
-                                public void onClick(View view) {
-                                    Intent i = new Intent(getActivity(), Login.class);
-                                    startActivity(i);
-                                }
-                            });
+                    break;
+                case 0:
+                    if (login)
+                        galeri();
+                    else {
+                        Snackbar snackbar = Snackbar
+                                .make(layoutGallery, "Login untuk upload Foto", Snackbar.LENGTH_LONG)
+                                .setAction("LOGIN", new View.OnClickListener() {
+                                    @Override
+                                    public void onClick(View view) {
+                                        Intent i = new Intent(getActivity(), Login.class);
+                                        startActivity(i);
+                                    }
+                                });
 
-                    snackbar.show();
-                }
-                break;
-            default:
-                if (position != foto.size()) {
+                        snackbar.show();
+                    }
+                    break;
+                default:
                     Intent i = new Intent(getActivity(), DetailGalery.class);
                     i.putExtra("nama_foto", foto.get(position).getNama_foto());
                     i.putExtra("tanggal", foto.get(position).getTanggal());
@@ -584,14 +616,32 @@ public class ListGallery extends Fragment implements View.OnClickListener, Swipe
                     i.putExtra("nama", foto.get(position).getUser().getNama());
                     i.putExtra("id_user", foto.get(position).getUser().getId_user());
                     startActivity(i);
-                }
-                break;
+                    break;
+            }
         }
     }
 
     @Override
-    public void onItemLongClick(View view, int position) {
+    public void onItemLongClick(View view, final int position) {
+        int myId = preferences.getInt("id_user", 0);
 
+        if (tipe == GALLERY_USER && id_user == myId && !load) {
+            AlertDialog.Builder builder = new AlertDialog.Builder(getActivity())
+                    .setTitle("Hapus Foto")
+                    .setMessage("Apakah anda ingin menghapus foto ini?")
+                    .setNegativeButton("Batal", new DialogInterface.OnClickListener() {
+                        @Override
+                        public void onClick(DialogInterface dialog, int which) {
+
+                        }
+                    }).setPositiveButton("Hapus", new DialogInterface.OnClickListener() {
+                        @Override
+                        public void onClick(DialogInterface dialog, int which) {
+                            hapusFoto(position);
+                        }
+                    });
+            builder.create().show();
+        }
     }
 
     @Override

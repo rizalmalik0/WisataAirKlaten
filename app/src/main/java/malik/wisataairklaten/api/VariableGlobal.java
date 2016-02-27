@@ -6,6 +6,6 @@ public class VariableGlobal {
 //	public static final String URL = "http://10.0.3.2/wisata_klaten";
 //	public static final String URL = "http://wisata.cisharp.com";
 
-	public static final String URL_GAMBAR = URL+"/gambar/";
+	public static final String URL_GAMBAR = URL+"/user/";
 	public static final String URL_ICON = URL+"/icon/";
 }

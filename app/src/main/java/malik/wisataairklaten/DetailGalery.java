@@ -32,7 +32,7 @@ public class DetailGalery extends AppCompatActivity implements View.OnClickListe
         super.onCreate(savedInstanceState);
         setContentView(R.layout.detail_gallery);
 
-        id_foto = getIntent().getIntExtra("id_foto",0);
+        id_foto = getIntent().getIntExtra("id_foto", 0);
         nama_foto = getIntent().getStringExtra("nama_foto");
         dekripsi = getIntent().getStringExtra("deskripsi");
         tanggal = getIntent().getStringExtra("tanggal");
@@ -52,10 +52,11 @@ public class DetailGalery extends AppCompatActivity implements View.OnClickListe
         getSupportActionBar().setDisplayHomeAsUpEnabled(true);
 
         // set data
-        if (id_foto==-1)
+        if (id_foto == -1)
             Picasso.with(this).load(Uri.parse(nama_foto)).fit().centerCrop().into(imgFoto);
         else
-            Picasso.with(this).load(VariableGlobal.URL_GAMBAR + nama_foto).fit().centerCrop().into(imgFoto);
+            Picasso.with(this).load(VariableGlobal.URL_GAMBAR + id_user + "/" + nama_foto).fit().centerCrop().into(imgFoto);
+
         txtUsername.setText(username);
         txtDeskripsi.setText(dekripsi);
         txtTanggal.setText(tanggal);

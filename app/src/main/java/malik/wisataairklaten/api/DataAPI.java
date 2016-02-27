@@ -104,25 +104,25 @@ public interface DataAPI {
                              Callback<List<Foto>> foto);
 
     @FormUrlEncoded
-    @POST("/json/load_more_foto_wisata.php")
+    @POST("/json/load_more_foto_user.php")
     public void loadMoreFotoUser(@Field("id_user") int id_user,
                                  @Field("last_id") int last_id,
-                             Callback<List<Foto>> foto);
+                                 Callback<List<Foto>> foto);
 
     @FormUrlEncoded
-    @POST("/json/load_more_foto_user.php")
+    @POST("/json/load_more_foto_wisata.php")
     public void loadMoreFotoWisata(@Field("id_wisata") int id_wisata,
                                    @Field("last_id") int last_id,
-                             Callback<List<Foto>> foto);
+                                   Callback<List<Foto>> foto);
 
     // edit
     @FormUrlEncoded
     @POST("/json/ubah_review.php")
     public void editReview(@Field("id_user") int id_user,
-                             @Field("id_wisata") int id_wisata,
-                             @Field("rating") int rating,
-                             @Field("isi") String isi,
-                             Callback<JSONPesan> json);
+                           @Field("id_wisata") int id_wisata,
+                           @Field("rating") int rating,
+                           @Field("isi") String isi,
+                           Callback<JSONPesan> json);
 
     // JSON Object
     @FormUrlEncoded
@@ -135,5 +135,13 @@ public interface DataAPI {
     @POST("/json/upload.php")
     public void uploadFoto(@Part("nama_foto") TypedFile foto,
                            @PartMap Map<String, String> map,
-                           Callback<JSONData<String>> data);
+                           Callback<JSONPesan> pesan);
+
+    // hapus
+
+    @FormUrlEncoded
+    @POST("/json/hapus_foto_user.php")
+    public void deleteFoto(@Field("id_foto") int id_foto,
+                           @Field("id_user") int id_user,
+                           Callback<JSONPesan> pesan);
 }
