@@ -4,14 +4,15 @@ import android.content.Intent;
 import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.preference.PreferenceManager;
+import android.support.design.widget.Snackbar;
 import android.support.design.widget.TextInputLayout;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.EditText;
+import android.widget.LinearLayout;
 import android.widget.TextView;
-import android.widget.Toast;
 
 import com.dd.processbutton.iml.ActionProcessButton;
 import com.google.gson.Gson;
@@ -44,6 +45,7 @@ public class Login extends AppCompatActivity implements ProgressGenerator.OnComp
     ActionProcessButton btnLogin;
     TextView txtRegistrasi;
     TextInputLayout wrapperUsername, wrapperPassword;
+    LinearLayout layoutLogin;
     Toolbar toolbar;
     ProgressGenerator progressGenerator;
     DataAPI api;
@@ -74,6 +76,7 @@ public class Login extends AppCompatActivity implements ProgressGenerator.OnComp
         etPassword = (EditText) findViewById(R.id.etPassword);
         wrapperUsername = (TextInputLayout) findViewById(R.id.wrapperUsername);
         wrapperPassword = (TextInputLayout) findViewById(R.id.wrapperPassword);
+        layoutLogin = (LinearLayout) findViewById(R.id.layout_login);
 
         //set View
         setSupportActionBar(toolbar);
@@ -116,10 +119,11 @@ public class Login extends AppCompatActivity implements ProgressGenerator.OnComp
                     editor.putInt("id_user", userJSONData.getData().getId_user());
                     editor.putString("nama", userJSONData.getData().getNama());
                     editor.putString("username", userJSONData.getData().getUsername());
+                    editor.putString("email", userJSONData.getData().getEmail());
                     editor.commit();
 
                 } else {
-                    Toast.makeText(Login.this, "Login Gagal", Toast.LENGTH_SHORT).show();
+                    Snackbar.make(layoutLogin, "Login Gagal", Snackbar.LENGTH_SHORT).show();
                     btnLogin.setProgress(-1);
                 }
             }
@@ -128,7 +132,7 @@ public class Login extends AppCompatActivity implements ProgressGenerator.OnComp
             public void failure(RetrofitError retrofitError) {
                 setFormEnabled(true);
                 btnLogin.setProgress(-1);
-                Toast.makeText(Login.this, "Koneksi Gagal " + retrofitError.getMessage(), Toast.LENGTH_SHORT).show();
+                Snackbar.make(layoutLogin, "Koneksi Gagal", Snackbar.LENGTH_SHORT).show();
             }
         });
     }

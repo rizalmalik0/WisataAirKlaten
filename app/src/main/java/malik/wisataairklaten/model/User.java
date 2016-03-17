@@ -7,6 +7,7 @@ public class User {
     int id_user;
     String username;
     String nama;
+    String email;
 
     public User() {
     }
@@ -39,6 +40,14 @@ public class User {
 
     public void setNama(String nama) {
         this.nama = nama;
+    }
+
+    public String getEmail() {
+        return email;
+    }
+
+    public void setEmail(String email) {
+        this.email = email;
     }
 }
 

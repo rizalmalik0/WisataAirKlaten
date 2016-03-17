@@ -52,7 +52,7 @@ public class DetailGalery extends AppCompatActivity implements View.OnClickListe
         getSupportActionBar().setDisplayHomeAsUpEnabled(true);
 
         // set data
-        if (id_foto == -1)
+        if (tanggal.equals("Baru Saja"))
             Picasso.with(this).load(Uri.parse(nama_foto)).fit().centerCrop().into(imgFoto);
         else
             Picasso.with(this).load(VariableGlobal.URL_GAMBAR + id_user + "/" + nama_foto).fit().centerCrop().into(imgFoto);

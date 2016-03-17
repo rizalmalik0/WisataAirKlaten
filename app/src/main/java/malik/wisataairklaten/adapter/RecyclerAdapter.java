@@ -3,6 +3,7 @@ package malik.wisataairklaten.adapter;
 import android.content.Context;
 import android.net.Uri;
 import android.support.v7.widget.RecyclerView;
+import android.util.Log;
 import android.view.ContextMenu;
 import android.view.LayoutInflater;
 import android.view.Menu;
@@ -22,12 +23,14 @@ import com.squareup.picasso.Picasso;
 import java.util.List;
 import java.util.Locale;
 
+import malik.wisataairklaten.Dijkstra;
 import malik.wisataairklaten.R;
 import malik.wisataairklaten.api.VariableGlobal;
 import malik.wisataairklaten.model.Fasilitas;
 import malik.wisataairklaten.model.Foto;
 import malik.wisataairklaten.model.Review;
 import malik.wisataairklaten.model.Wisata;
+import malik.wisataairklaten.view.SquareImageView;
 
 /**
  * Created by Rizal Malik on 01/02/2016.
@@ -95,6 +98,14 @@ public class RecyclerAdapter<T> extends RecyclerView.Adapter<RecyclerView.ViewHo
                 case TIPE_WISATA:
                     WisataHolder wisataHolder = (WisataHolder) holder;
                     Wisata w = (Wisata) listData.get(position);
+
+                    if (w.getJarak() != 0) {
+                        String jarakKm = w.getJarak() >= 1000 ? (float) w.getJarak() / 1000 + " km" : w.getJarak() + " m";
+                        wisataHolder.txtJarak.setText(jarakKm);
+                        wisataHolder.txtJarak.setVisibility(View.VISIBLE);
+                    } else {
+                        wisataHolder.txtJarak.setVisibility(View.GONE);
+                    }
 
                     wisataHolder.txtNama.setText(w.getNama_wisata());
                     wisataHolder.rbWisata.setRating(w.getRating());
@@ -164,7 +175,7 @@ public class RecyclerAdapter<T> extends RecyclerView.Adapter<RecyclerView.ViewHo
     }
 
     public class WisataHolder extends RecyclerView.ViewHolder {
-        TextView txtNama;
+        TextView txtNama, txtJarak;
         ImageView imgItem;
         RatingBar rbWisata;
 
@@ -172,13 +183,14 @@ public class RecyclerAdapter<T> extends RecyclerView.Adapter<RecyclerView.ViewHo
             super(itemView);
 
             txtNama = (TextView) itemView.findViewById(R.id.txtNamaWisata);
+            txtJarak = (TextView) itemView.findViewById(R.id.txtJarak);
             imgItem = (ImageView) itemView.findViewById(R.id.imgItem);
             rbWisata = (RatingBar) itemView.findViewById(R.id.rbWisata);
         }
     }
 
     public class FotoHolder extends RecyclerView.ViewHolder {
-        ImageView imgItem;
+        SquareImageView imgItem;
         Button btnUpload;
         RelativeLayout layoutUpload;
         ProgressBar pbUpload;
@@ -187,7 +199,7 @@ public class RecyclerAdapter<T> extends RecyclerView.Adapter<RecyclerView.ViewHo
             super(itemView);
 
             layoutUpload = (RelativeLayout) itemView.findViewById(R.id.layout_upload);
-            imgItem = (ImageView) itemView.findViewById(R.id.imgItem);
+            imgItem = (SquareImageView) itemView.findViewById(R.id.imgItem);
             btnUpload = (Button) itemView.findViewById(R.id.btnUpload);
             pbUpload = (ProgressBar) itemView.findViewById(R.id.pbUpload);
         }
@@ -241,9 +253,5 @@ public class RecyclerAdapter<T> extends RecyclerView.Adapter<RecyclerView.ViewHo
 
     public void setFooter(boolean isVisible) {
         isFooterVisible = isVisible;
-    }
-
-    public void getView(int position) {
-
     }
 }

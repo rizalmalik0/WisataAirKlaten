@@ -2,6 +2,7 @@ package malik.wisataairklaten;
 
 import android.content.Intent;
 import android.os.Bundle;
+import android.os.Handler;
 import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
 import android.view.LayoutInflater;
@@ -22,6 +23,7 @@ import com.google.android.gms.maps.model.MarkerOptions;
 import java.util.HashMap;
 import java.util.List;
 
+import malik.wisataairklaten.adapter.CustomInfoWindow;
 import malik.wisataairklaten.adapter.DataAdapter;
 import malik.wisataairklaten.model.Wisata;
 
@@ -39,6 +41,7 @@ public class GeoPhoto extends Fragment implements OnMapReadyCallback, GoogleMap.
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
+        // init
         mHashMap = new HashMap<Marker, Integer>();
         data = new DataAdapter(getActivity());
 
@@ -64,8 +67,6 @@ public class GeoPhoto extends Fragment implements OnMapReadyCallback, GoogleMap.
     public void onMapReady(final GoogleMap googleMap) {
         googleMap.getUiSettings().setScrollGesturesEnabled(false);
         googleMap.getUiSettings().setMapToolbarEnabled(false);
-        googleMap.getUiSettings().setZoomControlsEnabled(false);
-        googleMap.getUiSettings().setZoomGesturesEnabled(false);
         googleMap.moveCamera(CameraUpdateFactory.newLatLngZoom(new LatLng(-7.613596, 110.635787), 13));
 
         LatLngBounds.Builder builder = new LatLngBounds.Builder();
@@ -75,13 +76,18 @@ public class GeoPhoto extends Fragment implements OnMapReadyCallback, GoogleMap.
             Marker m = googleMap.addMarker(new MarkerOptions()
                     .position(new LatLng(w.getLatitude(), w.getLongitude()))
                     .title(w.getNama_wisata())
-                    .snippet(w.getNama_wisata()).icon(BitmapDescriptorFactory.fromResource(R.drawable.marker_map)));
+                    .icon(BitmapDescriptorFactory.fromResource(R.drawable.marker_map)));
 
             builder.include(new LatLng(w.getLatitude(), w.getLongitude()));
             mHashMap.put(m, i);
         }
         bound = builder.build();
 
+        // Info Window adapter
+        CustomInfoWindow infoWindow = new CustomInfoWindow(getActivity(), wisata, mHashMap);
+
+        // listener
+        googleMap.setInfoWindowAdapter(infoWindow);
         googleMap.setOnInfoWindowClickListener(this);
         googleMap.setOnMapLoadedCallback(new GoogleMap.OnMapLoadedCallback() {
             @Override
@@ -94,12 +100,6 @@ public class GeoPhoto extends Fragment implements OnMapReadyCallback, GoogleMap.
                 }
             }
         });
-    }
-
-    public static GeoPhoto newInstance() {
-        GeoPhoto myFragment = new GeoPhoto();
-
-        return myFragment;
     }
 
     @Override

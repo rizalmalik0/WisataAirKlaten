@@ -5,16 +5,13 @@ import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.preference.PreferenceManager;
 import android.support.design.widget.Snackbar;
-import android.support.design.widget.TextInputLayout;
 import android.support.v4.app.Fragment;
 import android.support.v4.widget.SwipeRefreshLayout;
 import android.support.v7.widget.CardView;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
-import android.view.ContextMenu;
+import android.util.Log;
 import android.view.LayoutInflater;
-import android.view.Menu;
-import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
@@ -22,7 +19,6 @@ import android.widget.EditText;
 import android.widget.LinearLayout;
 import android.widget.RatingBar;
 import android.widget.TextView;
-import android.widget.Toast;
 
 import com.balysv.materialripple.MaterialRippleLayout;
 import com.dd.processbutton.iml.ActionProcessButton;
@@ -86,8 +82,7 @@ public class ListReview extends Fragment implements View.OnClickListener, SwipeR
 
         // getlogin
         preferences = PreferenceManager.getDefaultSharedPreferences(getActivity());
-        login = preferences.getBoolean("login", false);
-        id_user = preferences.getInt("id_user", 0);
+        cekLogin();
         id_wisata = getArguments().getInt("id_wisata");
 
         // koneksi
@@ -154,16 +149,21 @@ public class ListReview extends Fragment implements View.OnClickListener, SwipeR
             public void success(List<Review> reviews, Response response) {
                 load = false;
                 sukses = true;
-
                 last = reviews.size() < load_count;
-                if (last) adapter.setFooter(false);
 
+                review.clear();
                 review.addAll(reviews);
+                adapter.notifyDataSetChanged();
+
+                // set view
+                if (last) {
+                    adapter.setFooter(false);
+                    adapter.notifyItemChanged(review.size());
+                }
+
                 swReview.setRefreshing(false);
                 ripple.setVisibility(View.GONE);
                 btnCobaLagi.setVisibility(View.GONE);
-
-                adapter.notifyDataSetChanged();
             }
 
             @Override
@@ -192,8 +192,10 @@ public class ListReview extends Fragment implements View.OnClickListener, SwipeR
                     if (jsonReview.getData().getIsi().trim().length() != 0) {
                         txtReview.setText(jsonReview.getData().getIsi());
                         txtReview.setVisibility(View.VISIBLE);
+                        layoutPost.setVisibility(View.GONE);
                     } else {
                         txtReview.setVisibility(View.GONE);
+                        layoutPost.setVisibility(View.GONE);
                     }
                 }
 
@@ -216,11 +218,17 @@ public class ListReview extends Fragment implements View.OnClickListener, SwipeR
             @Override
             public void success(List<Review> reviews, Response response) {
                 load = false;
-                review.addAll(review.size(), reviews);
-
                 last = reviews.size() < load_count;
-                if (last) adapter.setFooter(false);
-                adapter.notifyDataSetChanged();
+                int lastCount = review.size();
+
+                review.addAll(review.size(), reviews);
+                adapter.notifyItemRangeInserted(lastCount, reviews.size());
+
+                // set view
+                if (last) {
+                    adapter.setFooter(false);
+                    adapter.notifyItemChanged(review.size());
+                }
             }
 
             @Override
@@ -239,6 +247,7 @@ public class ListReview extends Fragment implements View.OnClickListener, SwipeR
                 if (jsonPesan.getStatus() == 1) {
                     String isi = etReview.getText().toString().trim();
 
+                    DetailWisata.rate = true;
                     btnPost.setProgress(100);
                     layoutPost.setVisibility(View.GONE);
                     if (isi.length() != 0) {
@@ -250,7 +259,7 @@ public class ListReview extends Fragment implements View.OnClickListener, SwipeR
                 } else {
                     btnPost.setProgress(-1);
                     setFormEnabled(true);
-                    Toast.makeText(getActivity(), "Gagal menambah data", Toast.LENGTH_SHORT).show();
+                    Snackbar.make(layoutListReview, "Gagal menambahkan review", Snackbar.LENGTH_SHORT).show();
                 }
             }
 
@@ -258,7 +267,7 @@ public class ListReview extends Fragment implements View.OnClickListener, SwipeR
             public void failure(RetrofitError retrofitError) {
                 setFormEnabled(true);
                 btnPost.setProgress(-1);
-                Toast.makeText(getActivity(), "Koneksi Gagal", Toast.LENGTH_SHORT).show();
+                Snackbar.make(layoutReview, "Koneksi Gagal", Snackbar.LENGTH_SHORT).show();
             }
         });
     }
@@ -272,6 +281,7 @@ public class ListReview extends Fragment implements View.OnClickListener, SwipeR
                 if (jsonPesan.getStatus() == 1 || jsonPesan.getPesan().equals("Tidak ada data diubah")) {
                     String isi = etReview.getText().toString().trim();
 
+                    DetailWisata.rate = true;
                     btnPost.setProgress(100);
                     layoutPost.setVisibility(View.GONE);
                     if (isi.length() != 0) {
@@ -283,7 +293,7 @@ public class ListReview extends Fragment implements View.OnClickListener, SwipeR
                 } else {
                     btnPost.setProgress(-1);
                     setFormEnabled(true);
-                    Toast.makeText(getActivity(), "Tidak dapat mengubah data", Toast.LENGTH_SHORT).show();
+                    Snackbar.make(layoutListReview, "Gagal merubah review", Snackbar.LENGTH_SHORT).show();
                 }
             }
 
@@ -291,7 +301,7 @@ public class ListReview extends Fragment implements View.OnClickListener, SwipeR
             public void failure(RetrofitError retrofitError) {
                 btnPost.setProgress(-1);
                 setFormEnabled(true);
-                Toast.makeText(getActivity(), "Koneksi Gagal", Toast.LENGTH_SHORT).show();
+                Snackbar.make(layoutListReview, "Koneksi Gagal", Snackbar.LENGTH_SHORT).show();
             }
         });
     }
@@ -301,6 +311,11 @@ public class ListReview extends Fragment implements View.OnClickListener, SwipeR
         layoutReview.setClickable(!enable);
         etReview.setEnabled(enable);
         btnPost.setEnabled(enable);
+    }
+
+    public void cekLogin() {
+        login = preferences.getBoolean("login", false);
+        id_user = preferences.getInt("id_user", 0);
     }
 
     @Override
@@ -375,6 +390,16 @@ public class ListReview extends Fragment implements View.OnClickListener, SwipeR
     @Override
     public void onItemLongClick(View view, int position) {
 
+    }
+
+    @Override
+    public void onResume() {
+        super.onResume();
+        cekLogin();
+
+        if (!load && login) {
+            getStatusReview();
+        }
     }
 
     @Override

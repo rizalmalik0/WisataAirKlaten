@@ -1,19 +1,32 @@
 package malik.wisataairklaten;
 
+import android.app.ProgressDialog;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.preference.PreferenceManager;
+import android.support.design.widget.Snackbar;
 import android.support.v4.view.ViewPager;
 import android.os.Bundle;
+import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
+import android.util.Log;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
+import android.view.View;
+import android.widget.LinearLayout;
+import android.widget.Toast;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Date;
 import java.util.List;
 
 import malik.wisataairklaten.adapter.DataAdapter;
@@ -21,6 +34,7 @@ import malik.wisataairklaten.adapter.TabsPagerAdapter;
 import malik.wisataairklaten.api.DataAPI;
 import malik.wisataairklaten.api.DataDeserializer;
 import malik.wisataairklaten.api.VariableGlobal;
+import malik.wisataairklaten.model.Update;
 import malik.wisataairklaten.model.Wisata;
 import malik.wisataairklaten.view.SlidingTabLayout;
 import retrofit.Callback;
@@ -30,16 +44,21 @@ import retrofit.client.Response;
 import retrofit.converter.GsonConverter;
 
 public class MenuUtama extends AppCompatActivity {
-    private ViewPager viewPager;
-    private SlidingTabLayout tabs;
-    private Toolbar toolbar;
-    private TabsPagerAdapter mAdapter;
+    ViewPager viewPager;
+    SlidingTabLayout tabs;
+    Toolbar toolbar;
+    TabsPagerAdapter mAdapter;
+    LinearLayout layoutMenuUtama;
+    ProgressDialog dialog;
     Menu menu;
     DataAPI api;
     DataAdapter data;
     SharedPreferences preferences;
 
-    CharSequence Titles[] = {"Wisata", "Gallery", "Geo Photo"};
+    ListWisata listWisata;
+    ListGallery listGallery;
+
+    CharSequence Titles[] = {"Wisata", "Galeri", "Peta"};
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -53,6 +72,7 @@ public class MenuUtama extends AppCompatActivity {
         toolbar = (Toolbar) findViewById(R.id.toolbar);
         tabs = (SlidingTabLayout) findViewById(R.id.tabs);
         viewPager = (ViewPager) findViewById(R.id.pager);
+        layoutMenuUtama = (LinearLayout) findViewById(R.id.layout_menu_utama);
 
         // set view
         setSupportActionBar(toolbar);
@@ -67,14 +87,19 @@ public class MenuUtama extends AppCompatActivity {
         Gson gson = new GsonBuilder()
                 .registerTypeAdapter(List.class,
                         new DataDeserializer<List<Wisata>>())
+                .registerTypeAdapter(Update.class,
+                        new DataDeserializer<Update>())
                 .create();
         RestAdapter restAdapter = new RestAdapter.Builder()
                 .setConverter(new GsonConverter(gson))
                 .setEndpoint(VariableGlobal.URL).build();
         api = restAdapter.create(DataAPI.class);
 
-        // get data
-        getSemuaRating();
+        // cek update
+        boolean update = preferences.getBoolean("update", false);
+        if (!update) {
+            cekUpdate(false);
+        }
     }
 
     private void cekLogin() {
@@ -82,35 +107,100 @@ public class MenuUtama extends AppCompatActivity {
         MenuItem menuLogin = menu.findItem(R.id.menu_login);
         MenuItem menuRegistrasi = menu.findItem(R.id.menu_registrasi);
         MenuItem menuProfil = menu.findItem(R.id.menu_profil);
-        MenuItem menuLogout = menu.findItem(R.id.menu_logout);
         if (login) {
             menuLogin.setVisible(false);
             menuRegistrasi.setVisible(false);
             menuProfil.setVisible(true);
-            menuLogout.setVisible(true);
         } else {
             menuLogin.setVisible(true);
             menuRegistrasi.setVisible(true);
             menuProfil.setVisible(false);
-            menuLogout.setVisible(false);
         }
+    }
+
+    public void cekUpdate(final boolean manual) {
+        final String last_update = preferences.getString("last_update", "");
+        dialog = new ProgressDialog(this);
+        if (manual) {
+            dialog.setMessage("Checking Update..");
+            dialog.setCancelable(false);
+            dialog.show();
+        }
+
+        api.cekUpdate(new Callback<Update>() {
+            @Override
+            public void success(Update update, Response response) {
+                dialog.dismiss();
+
+                SimpleDateFormat simpleDateFormat = new SimpleDateFormat("yyyy-MM-dd");
+                Date last_date = null;
+                Date sistem_date = null;
+
+                try {
+                    last_date = simpleDateFormat.parse(last_update);
+                    sistem_date = simpleDateFormat.parse(update.getTanggal());
+                } catch (ParseException e) {
+                    e.printStackTrace();
+                }
+
+                if (sistem_date.after(last_date)) {
+                    AlertDialog.Builder builder = new AlertDialog.Builder(MenuUtama.this)
+                            .setTitle("Update " + update.getVersion())
+                            .setNegativeButton("Nanti", new DialogInterface.OnClickListener() {
+                                @Override
+                                public void onClick(DialogInterface dialog, int which) {
+                                    SharedPreferences.Editor editor = preferences.edit();
+                                    editor.putBoolean("update", true);
+                                    editor.commit();
+                                }
+                            }).setPositiveButton("Update", new DialogInterface.OnClickListener() {
+                                @Override
+                                public void onClick(DialogInterface dialog, int which) {
+                                    SharedPreferences.Editor editor = preferences.edit();
+                                    editor.putBoolean("update", false);
+                                    editor.commit();
+                                }
+                            });
+
+                    if (update.getPesan() != null) builder.setMessage(update.getPesan());
+
+                    builder.create().show();
+                } else {
+                    if (manual) {
+                        Snackbar.make(layoutMenuUtama, "Aplikasi telah versi terbaru", Snackbar.LENGTH_SHORT).show();
+                    }
+                }
+            }
+
+            @Override
+            public void failure(RetrofitError retrofitError) {
+                dialog.dismiss();
+                if (manual) {
+                    Snackbar.make(layoutMenuUtama, "Gagal Cek Update", Snackbar.LENGTH_LONG)
+                            .setAction("Coba Lagi", new View.OnClickListener() {
+                                @Override
+                                public void onClick(View v) {
+                                    cekUpdate(true);
+                                }
+                            }).show();
+                }
+            }
+        });
     }
 
     public void getSemuaRating() {
         api.getRating(new Callback<List<Wisata>>() {
             @Override
             public void success(List<Wisata> wisatas, Response response) {
-                ListWisata listWisata = (ListWisata) mAdapter.getItem(0);
+                if (listWisata == null) listWisata = (ListWisata) mAdapter.getItem(0);
 
                 data.write();
                 for (int i = 0; i < wisatas.size(); i++) {
-                    if (listWisata.wisata.get(i) != null) {
-                        data.setRatingWisata(wisatas.get(i).getId_wisata(), wisatas.get(i).getRating());
-                        listWisata.wisata.get(i).setRating(wisatas.get(i).getRating());
-                        listWisata.adapter.notifyDataSetChanged();
-                    }
+                    data.setRatingWisata(wisatas.get(i).getId_wisata(), wisatas.get(i).getRating());
                 }
                 data.close();
+
+                listWisata.getWisata();
             }
 
             @Override
@@ -145,7 +235,7 @@ public class MenuUtama extends AppCompatActivity {
                 break;
             case R.id.menu_profil:
                 i = new Intent(this, Profil.class);
-                startActivity(i);
+                startActivityForResult(i, 1);
                 break;
             case R.id.menu_logout:
                 SharedPreferences.Editor editor = preferences.edit();
@@ -158,9 +248,37 @@ public class MenuUtama extends AppCompatActivity {
                 i = new Intent(this, About.class);
                 startActivity(i);
                 break;
+            case R.id.menu_update:
+                cekUpdate(true);
+                break;
         }
 
         return true;
+    }
+
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+
+        if (resultCode == RESULT_OK)
+            switch (requestCode) {
+                default:
+                    boolean delete = data.getBooleanExtra("delete", false);
+                    boolean rate = data.getBooleanExtra("rate", false);
+
+                    if (rate) getSemuaRating();
+                    DetailWisata.rate = false;
+
+                    if (delete) {
+                        ArrayList<Integer> deletedId = data.getIntegerArrayListExtra("deletedId");
+                        Collections.sort(deletedId);
+                        Collections.reverse(deletedId);
+
+                        if (listGallery == null) listGallery = (ListGallery) mAdapter.getItem(1);
+                        listGallery.validateFoto(deletedId);
+                    }
+                    break;
+            }
     }
 
     @Override

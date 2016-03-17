@@ -4,8 +4,11 @@ import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.database.Cursor;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.net.Uri;
 import android.os.Bundle;
+import android.os.Environment;
 import android.preference.PreferenceManager;
 import android.provider.MediaStore;
 import android.support.design.widget.Snackbar;
@@ -14,6 +17,7 @@ import android.support.v4.widget.SwipeRefreshLayout;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.widget.GridLayoutManager;
 import android.support.v7.widget.RecyclerView;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -23,7 +27,6 @@ import android.widget.FrameLayout;
 import android.widget.ImageView;
 import android.widget.ProgressBar;
 import android.widget.RelativeLayout;
-import android.widget.Toast;
 
 import com.balysv.materialripple.MaterialRippleLayout;
 import com.google.gson.Gson;
@@ -31,6 +34,8 @@ import com.google.gson.GsonBuilder;
 import com.squareup.picasso.Picasso;
 
 import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
 import java.util.*;
 import java.util.Map;
 
@@ -69,6 +74,8 @@ public class ListGallery extends Fragment implements View.OnClickListener, Swipe
     Uri imageUri;
     Snackbar snackbar;
 
+    Profil profil;
+
     boolean load = true;
     boolean upload = false;
     boolean suksesUpload = true;
@@ -77,9 +84,10 @@ public class ListGallery extends Fragment implements View.OnClickListener, Swipe
     boolean login;
 
     int posisi = 0;
-    int id_wisata, id_user;
+    int id_wisata, id_user, id_user_profil;
     int lastVisiblesItems, totalItemCount;
     int tipe;
+
     String username, nama, deskripsi;
 
     final int load_count = 12;
@@ -102,14 +110,11 @@ public class ListGallery extends Fragment implements View.OnClickListener, Swipe
                 break;
             case GALLERY_WISATA:
                 posisi = 1;
-                login = preferences.getBoolean("login", false);
-                id_user = preferences.getInt("id_user", 0);
-                username = preferences.getString("username", "");
-                nama = preferences.getString("nama", "");
+                cekLogin();
                 id_wisata = getArguments().getInt("id_wisata");
                 break;
             case GALLERY_USER:
-                id_user = getArguments().getInt("id_user");
+                id_user_profil = getArguments().getInt("id_user");
                 break;
             default:
                 break;
@@ -199,7 +204,7 @@ public class ListGallery extends Fragment implements View.OnClickListener, Swipe
                 getGaleriWisata(id_wisata);
                 break;
             case GALLERY_USER:
-                getGaleriUser(id_user);
+                getGaleriUser(id_user_profil);
                 break;
         }
     }
@@ -213,16 +218,21 @@ public class ListGallery extends Fragment implements View.OnClickListener, Swipe
             public void success(List<Foto> fotos, Response response) {
                 load = false;
                 sukses = true;
-
                 last = fotos.size() < load_count;
-                if (last) adapter.setFooter(false);
+                int lastCount = foto.size();
 
                 foto.addAll(fotos);
+                adapter.notifyItemRangeInserted(lastCount, fotos.size());
+
+                // setview
+                if (last) {
+                    adapter.setFooter(false);
+                    adapter.notifyItemChanged(foto.size());
+                }
+
                 swGallery.setRefreshing(false);
                 ripple.setVisibility(View.GONE);
                 btnCobaLagi.setVisibility(View.GONE);
-
-                adapter.notifyDataSetChanged();
             }
 
             @Override
@@ -230,6 +240,7 @@ public class ListGallery extends Fragment implements View.OnClickListener, Swipe
                 load = false;
                 swGallery.setRefreshing(false);
                 btnCobaLagi.setVisibility(View.VISIBLE);
+                Snackbar.make(layoutGallery, "Koneksi Gagal", Snackbar.LENGTH_SHORT).show();
             }
         });
     }
@@ -241,11 +252,17 @@ public class ListGallery extends Fragment implements View.OnClickListener, Swipe
             @Override
             public void success(List<Foto> fotos, Response response) {
                 load = false;
-                foto.addAll(foto.size(), fotos);
-
                 last = fotos.size() < load_count;
-                if (last) adapter.setFooter(false);
-                adapter.notifyDataSetChanged();
+                int lastCount = foto.size();
+
+                foto.addAll(foto.size(), fotos);
+                adapter.notifyItemRangeInserted(lastCount, fotos.size());
+
+                // set view
+                if (last) {
+                    adapter.setFooter(false);
+                    adapter.notifyItemChanged(foto.size());
+                }
             }
 
             @Override
@@ -263,16 +280,20 @@ public class ListGallery extends Fragment implements View.OnClickListener, Swipe
             @Override
             public void success(List<Foto> fotos, Response response) {
                 load = false;
-                foto.addAll(posisi, fotos);
-                swGallery.setRefreshing(false);
+                int lastCount = foto.size();
 
-                adapter.notifyDataSetChanged();
+                foto.addAll(posisi, fotos);
+                adapter.notifyItemRangeInserted(lastCount, fotos.size());
+
+                // setView
+                swGallery.setRefreshing(false);
             }
 
             @Override
             public void failure(RetrofitError retrofitError) {
                 load = false;
                 swGallery.setRefreshing(false);
+                Snackbar.make(layoutGallery, "Koneksi Gagal", Snackbar.LENGTH_SHORT).show();
             }
         });
     }
@@ -287,18 +308,24 @@ public class ListGallery extends Fragment implements View.OnClickListener, Swipe
                 load = false;
                 sukses = true;
                 last = fotos.size() < load_count - 1;
-                if (last) adapter.setFooter(false);
+                int lastCount = foto.size();
 
                 Foto f = new Foto();
                 f.setId_foto(0);
                 foto.add(f);
 
                 foto.addAll(posisi, fotos);
+                adapter.notifyItemRangeInserted(lastCount, fotos.size() + 1);
+
+                // set view
+                if (last) {
+                    adapter.setFooter(false);
+                    adapter.notifyItemChanged(foto.size());
+                }
+
                 swGallery.setRefreshing(false);
                 ripple.setVisibility(View.GONE);
                 btnCobaLagi.setVisibility(View.GONE);
-
-                adapter.notifyDataSetChanged();
             }
 
             @Override
@@ -306,6 +333,7 @@ public class ListGallery extends Fragment implements View.OnClickListener, Swipe
                 load = false;
                 swGallery.setRefreshing(false);
                 btnCobaLagi.setVisibility(View.VISIBLE);
+                Snackbar.make(layoutGallery, "Koneksi Gagal", Snackbar.LENGTH_SHORT).show();
             }
         });
     }
@@ -317,11 +345,17 @@ public class ListGallery extends Fragment implements View.OnClickListener, Swipe
             @Override
             public void success(List<Foto> fotos, Response response) {
                 load = false;
-                foto.addAll(foto.size(), fotos);
-
                 last = fotos.size() < load_count;
-                if (last) adapter.setFooter(false);
-                adapter.notifyDataSetChanged();
+                int lastCount = foto.size();
+
+                foto.addAll(foto.size(), fotos);
+                adapter.notifyItemRangeInserted(lastCount, fotos.size());
+
+                // set view
+                if (last) {
+                    adapter.setFooter(false);
+                    adapter.notifyItemChanged(foto.size());
+                }
             }
 
             @Override
@@ -332,23 +366,29 @@ public class ListGallery extends Fragment implements View.OnClickListener, Swipe
     }
 
     //GALERI USER
-    public void getGaleriUser(int id_user) {
+    public void getGaleriUser(int id_user_profil) {
         load = true;
 
-        api.getGalleryUser(id_user, new Callback<List<Foto>>() {
+        api.getGalleryUser(id_user_profil, new Callback<List<Foto>>() {
             @Override
             public void success(List<Foto> fotos, Response response) {
                 load = false;
                 sukses = true;
                 last = fotos.size() < load_count;
-                if (last) adapter.setFooter(false);
+                int lastCount = foto.size();
 
                 foto.addAll(posisi, fotos);
+                adapter.notifyItemRangeInserted(lastCount, fotos.size());
+
+                // set view
+                if (last) {
+                    adapter.setFooter(false);
+                    adapter.notifyItemChanged(foto.size());
+                }
+
                 swGallery.setRefreshing(false);
                 ripple.setVisibility(View.GONE);
                 btnCobaLagi.setVisibility(View.GONE);
-
-                adapter.notifyDataSetChanged();
             }
 
             @Override
@@ -356,22 +396,29 @@ public class ListGallery extends Fragment implements View.OnClickListener, Swipe
                 load = false;
                 swGallery.setRefreshing(false);
                 btnCobaLagi.setVisibility(View.VISIBLE);
+                Snackbar.make(layoutGallery, "Koneksi Gagal", Snackbar.LENGTH_SHORT).show();
             }
         });
     }
 
-    public void loadMoreFotoUser(final int id_user, final int last_id) {
+    public void loadMoreFotoUser(final int id_user_profil, final int last_id) {
         load = true;
 
-        api.loadMoreFotoUser(id_user, last_id, new Callback<List<Foto>>() {
+        api.loadMoreFotoUser(id_user_profil, last_id, new Callback<List<Foto>>() {
             @Override
             public void success(List<Foto> fotos, Response response) {
                 load = false;
-                foto.addAll(foto.size(), fotos);
-
                 last = fotos.size() < load_count;
-                if (last) adapter.setFooter(false);
-                adapter.notifyDataSetChanged();
+                int lastCount = foto.size();
+
+                foto.addAll(foto.size(), fotos);
+                adapter.notifyItemRangeInserted(lastCount, fotos.size());
+
+                // set view
+                if (last) {
+                    adapter.setFooter(false);
+                    adapter.notifyItemChanged(foto.size());
+                }
             }
 
             @Override
@@ -386,7 +433,7 @@ public class ListGallery extends Fragment implements View.OnClickListener, Swipe
         upload = true;
         suksesUpload = false;
 
-        File f = new File(getPath(imageUri));
+        File f = compress(getPath(imageUri));
 
         TypedFile typedImage = new TypedFile("image/jpg", f);
 
@@ -395,9 +442,9 @@ public class ListGallery extends Fragment implements View.OnClickListener, Swipe
         map.put("id_wisata", id_wisata + "");
         map.put("deskripsi", deskripsi);
 
-        api.uploadFoto(typedImage, map, new Callback<JSONPesan>() {
+        api.uploadFoto(typedImage, map, new Callback<JSONData<Foto>>() {
             @Override
-            public void success(JSONPesan pesan, Response response) {
+            public void success(JSONData<Foto> dataFoto, Response response) {
                 upload = false;
                 suksesUpload = true;
 
@@ -405,6 +452,8 @@ public class ListGallery extends Fragment implements View.OnClickListener, Swipe
                 View v = rvGallery.getChildAt(0);
                 RelativeLayout layout = (RelativeLayout) v.findViewById(R.id.layout_upload);
                 layout.setVisibility(View.GONE);
+
+                foto.get(0).setId_foto(dataFoto.getData().getId_foto());
 
                 // add new
                 Foto f = new Foto();
@@ -417,8 +466,6 @@ public class ListGallery extends Fragment implements View.OnClickListener, Swipe
             public void failure(RetrofitError retrofitError) {
                 upload = false;
                 suksesUpload = false;
-
-                Toast.makeText(getActivity(), retrofitError.getMessage(), Toast.LENGTH_SHORT).show();
 
                 // set view
                 View v = rvGallery.getChildAt(0);
@@ -449,13 +496,21 @@ public class ListGallery extends Fragment implements View.OnClickListener, Swipe
         load = true;
         swGallery.setRefreshing(true);
 
-        api.deleteFoto(foto.get(position).getId_foto(), id_user, new Callback<JSONPesan>() {
+        api.deleteFoto(foto.get(position).getId_foto(), id_user_profil, foto.get(position).getNama_foto(), new Callback<JSONPesan>() {
             @Override
             public void success(JSONPesan jsonPesan, Response response) {
                 load = false;
                 swGallery.setRefreshing(false);
 
                 if (jsonPesan.getStatus() == 1) {
+                    if (profil == null) profil = (Profil) getActivity();
+
+                    profil.count = profil.count - 1;
+                    profil.txtFotoUpload.setText(profil.count + " foto");
+                    profil.delete = true;
+                    profil.deletedId.add(foto.get(position).getId_foto());
+                    profil.sortId();
+
                     foto.remove(position);
                     adapter.notifyItemRemoved(position);
                 } else {
@@ -482,6 +537,37 @@ public class ListGallery extends Fragment implements View.OnClickListener, Swipe
                         }).show();
             }
         });
+    }
+
+    // validate foto from detail wisata
+    public void validateFoto(ArrayList<Integer> deletedId) {
+        ArrayList<Integer> deletedPosition = new ArrayList<>();
+        int pos = 0;
+
+        // find position from deletedId from foto
+        for (int i = 0; i < foto.size(); i++) {
+            if (pos == deletedId.size())  // cek if last
+                break;
+
+            // find next jika id foto < delete id
+            while (pos != deletedId.size() && foto.get(i).getId_foto() < deletedId.get(pos) && foto.get(i).getId_foto() != 0) {
+                pos += 1;
+            }
+
+            if (pos == deletedId.size()) // cek if last
+                break;
+
+            if (foto.get(i).getId_foto() == deletedId.get(pos)) {
+                deletedPosition.add(i);
+                pos += 1;
+            }
+        }
+
+        // hapus foto from position
+        for (int i = 0; i < deletedPosition.size(); i++) {
+            foto.remove(deletedPosition.get(i) - (i)); // posisi minus dari banyak delete
+            adapter.notifyItemRemoved(deletedPosition.get(i) - (i));
+        }
     }
 
     public String getPath(Uri uri) {
@@ -540,6 +626,58 @@ public class ListGallery extends Fragment implements View.OnClickListener, Swipe
         builder.setView(layout);
         dialog = builder.create();
         dialog.show();
+    }
+
+    public File compress(String imageUri) {
+        try {
+            // BitmapFactory options to downsize the image
+            BitmapFactory.Options o = new BitmapFactory.Options();
+            o.inJustDecodeBounds = true; // get without save to memory
+
+            FileInputStream inputStream = new FileInputStream(imageUri);
+            //Bitmap selectedBitmap = null;
+            BitmapFactory.decodeStream(inputStream, null, o);
+            inputStream.close();
+
+            // find scale to max size
+            final int IMAGE_MAX_SIZE = 1000;
+            int scale = 1;
+            if (o.outHeight > IMAGE_MAX_SIZE || o.outWidth > IMAGE_MAX_SIZE) {
+                scale = (int) Math.pow(2, (int) Math.ceil(Math.log(IMAGE_MAX_SIZE /
+                        (double) Math.max(o.outHeight, o.outWidth)) / Math.log(0.5)));
+            }
+
+            // Bitmap from inputstream scaling
+            BitmapFactory.Options o2 = new BitmapFactory.Options();
+            o2.inSampleSize = scale;
+            inputStream = new FileInputStream(imageUri);
+
+            Bitmap selectedBitmap = BitmapFactory.decodeStream(inputStream, null, o2);
+            inputStream.close();
+
+            // store to tmp file
+            String extr = Environment.getExternalStorageDirectory().toString();
+            File mFolder = new File(extr + "/TMPFOLDER");
+            if (!mFolder.exists()) mFolder.mkdir();
+            String s = "tmp.jpg";
+
+            File f = new File(mFolder.getAbsolutePath(), s);
+
+            // compress the image
+            FileOutputStream outputStream = new FileOutputStream(f);
+            selectedBitmap.compress(Bitmap.CompressFormat.JPEG, 90, outputStream);
+
+            return f;
+        } catch (Exception e) {
+            return null;
+        }
+    }
+
+    public void cekLogin() {
+        login = preferences.getBoolean("login", false);
+        id_user = preferences.getInt("id_user", 0);
+        username = preferences.getString("username", "");
+        nama = preferences.getString("nama", "");
     }
 
     @Override
@@ -625,7 +763,7 @@ public class ListGallery extends Fragment implements View.OnClickListener, Swipe
     public void onItemLongClick(View view, final int position) {
         int myId = preferences.getInt("id_user", 0);
 
-        if (tipe == GALLERY_USER && id_user == myId && !load) {
+        if (tipe == GALLERY_USER && id_user_profil == myId && !load) {
             AlertDialog.Builder builder = new AlertDialog.Builder(getActivity())
                     .setTitle("Hapus Foto")
                     .setMessage("Apakah anda ingin menghapus foto ini?")
@@ -642,6 +780,12 @@ public class ListGallery extends Fragment implements View.OnClickListener, Swipe
                     });
             builder.create().show();
         }
+    }
+
+    @Override
+    public void onResume() {
+        super.onResume();
+        cekLogin();
     }
 
     @Override

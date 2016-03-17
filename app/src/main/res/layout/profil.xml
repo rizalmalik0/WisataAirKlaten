@@ -21,7 +21,7 @@
         <LinearLayout
             android:id="@+id/layout_profil"
             android:layout_width="match_parent"
-            android:layout_height="wrap_content"
+            android:layout_height="match_parent"
             android:orientation="vertical">
 
             <RelativeLayout
@@ -64,7 +64,7 @@
             <malik.wisataairklaten.view.CustomPager
                 android:id="@+id/pagerProfil"
                 android:layout_width="match_parent"
-                android:layout_height="wrap_content"></malik.wisataairklaten.view.CustomPager>
+                android:layout_height="400dp"></malik.wisataairklaten.view.CustomPager>
         </LinearLayout>
     </malik.wisataairklaten.view.CustomNestedScroll>
 </LinearLayout>

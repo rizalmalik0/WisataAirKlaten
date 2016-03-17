@@ -11,6 +11,7 @@ import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.Toolbar;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuInflater;
@@ -24,6 +25,7 @@ import android.widget.TextView;
 import com.squareup.picasso.Picasso;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 import malik.wisataairklaten.adapter.DataAdapter;
@@ -45,17 +47,22 @@ public class DetailWisata extends AppCompatActivity implements RecyclerItemClick
     CollapsingToolbarLayout collapsingToolbar;
     CustomNestedScroll nestedScrollView;
     ImageView imgWisata, imgLokasi;
-    public TabsPagerAdapter mAdapter;
+    TabsPagerAdapter mAdapter;
     RecyclerView rvFasilitas;
     DataAdapter data;
     Wisata wisata;
     List<Fasilitas> fasilitas;
+    ArrayList<Integer> deletedId;
     SharedPreferences preferences;
 
     ListReview listReview;
     ListGallery listGallery;
 
+    boolean delete = false;
+    static boolean rate;
+
     int id_wisata, id_user;
+
     CharSequence Titles[] = {"Gallery", "Review", "Rekomendasi"};
     Menu menu;
 
@@ -78,6 +85,7 @@ public class DetailWisata extends AppCompatActivity implements RecyclerItemClick
         // get data
         id_user = preferences.getInt("id_user", 0);
         id_wisata = getIntent().getIntExtra("id_wisata", 0);
+        deletedId = new ArrayList<>();
 
         // get detail
         data = new DataAdapter(this);
@@ -87,14 +95,14 @@ public class DetailWisata extends AppCompatActivity implements RecyclerItemClick
 
         // set data
         Picasso.with(this).load("file:///android_asset/gambar/" + wisata.getFoto()).fit().centerCrop().into(imgWisata);
-        String url = "http://maps.googleapis.com/maps/api/staticmap?zoom=15&scale=1&size=400x200&maptype=roadmap&format=png&visual_refresh=true&markers=size:small|color:0x029789|label:1|";
-        Picasso.with(this).load(url + wisata.getLatitude() + "," + wisata.getLongitude()).placeholder(R.drawable.marker).fit().into(imgLokasi);
+        Picasso.with(this).load("file:///android_asset/map/" + wisata.getId_wisata() + ".png").placeholder(R.drawable.marker).fit().into(imgLokasi);
         getFasilitas();
 
         // set view
         setSupportActionBar(toolbar);
         getSupportActionBar().setDisplayHomeAsUpEnabled(true);
         collapsingToolbar.setTitle(wisata.getNama_wisata());
+        collapsingToolbar.setExpandedTitleTextAppearance(R.style.ExpandedAppBar);
         mAdapter = new TabsPagerAdapter(getSupportFragmentManager(), Titles, TabsPagerAdapter.PAGER_DETAIL_WISATA, wisata.getId_wisata());
         viewPager.setAdapter(mAdapter);
         tabLayout.setupWithViewPager(viewPager);
@@ -118,43 +126,44 @@ public class DetailWisata extends AppCompatActivity implements RecyclerItemClick
         String[] split = wisata.getFasilitas().split(",");
         fasilitas = new ArrayList<Fasilitas>();
 
+        Fasilitas kedalaman = new Fasilitas();
+        kedalaman.setGambar(wisata.getKedalaman());
+        kedalaman.setNama_fasilitas("Kedalaman");
+        fasilitas.add(kedalaman);
+
         for (int i = 0; i < split.length; i++) {
             Fasilitas f = new Fasilitas();
-            if (i == 0) {
-                f.setGambar(split[i]);
-                f.setNama_fasilitas("Kedalaman");
-                fasilitas.add(f);
-            } else {
-                StringBuilder builder = new StringBuilder(split[i]);
-                builder.setCharAt(0, Character.toUpperCase(builder.charAt(0)));
-                String nama = builder.toString();
-                nama = nama.replace("_", " ");
+            StringBuilder builder = new StringBuilder(split[i]);
+            builder.setCharAt(0, Character.toUpperCase(builder.charAt(0)));
+            String nama = builder.toString();
+            nama = nama.replace("_", " ");
 
-                f.setGambar(split[i] + ".png");
-                f.setNama_fasilitas(nama);
-                fasilitas.add(f);
-            }
+            f.setGambar(split[i] + ".png");
+            f.setNama_fasilitas(nama);
+            fasilitas.add(f);
         }
     }
-
 
     private void cekLogin() {
         boolean login = preferences.getBoolean("login", false);
         MenuItem menuLogin = menu.findItem(R.id.menu_login);
         MenuItem menuRegistrasi = menu.findItem(R.id.menu_registrasi);
         MenuItem menuProfil = menu.findItem(R.id.menu_profil);
-        MenuItem menuLogout = menu.findItem(R.id.menu_logout);
         if (login) {
             menuLogin.setVisible(false);
             menuRegistrasi.setVisible(false);
             menuProfil.setVisible(true);
-            menuLogout.setVisible(true);
         } else {
             menuLogin.setVisible(true);
             menuRegistrasi.setVisible(true);
             menuProfil.setVisible(false);
-            menuLogout.setVisible(false);
         }
+    }
+
+    public void map(View v) {
+        Intent i = new Intent(this, Map.class);
+        i.putExtra("id_wisata", id_wisata);
+        startActivity(i);
     }
 
     @Override
@@ -196,7 +205,7 @@ public class DetailWisata extends AppCompatActivity implements RecyclerItemClick
     public boolean onCreateOptionsMenu(Menu menu) {
         this.menu = menu;
         MenuInflater inflater = getMenuInflater();
-        inflater.inflate(R.menu.menu_utama, menu);
+        inflater.inflate(R.menu.menu_wisata, menu);
 
         cekLogin();
 
@@ -220,7 +229,7 @@ public class DetailWisata extends AppCompatActivity implements RecyclerItemClick
                 break;
             case R.id.menu_profil:
                 i = new Intent(this, Profil.class);
-                startActivity(i);
+                startActivityForResult(i, 1);
                 break;
             case R.id.menu_logout:
                 SharedPreferences.Editor editor = preferences.edit();
@@ -238,9 +247,23 @@ public class DetailWisata extends AppCompatActivity implements RecyclerItemClick
         return true;
     }
 
-    public void map(View v) {
-        Intent i = new Intent(this, Map.class);
-        startActivity(i);
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+
+        if (resultCode == RESULT_OK) {
+            delete = data.getBooleanExtra("delete", false); // cek data delete
+            rate = data.getBooleanExtra("rate", false);
+
+            if (delete) {
+                deletedId.addAll(data.getIntegerArrayListExtra("deletedId"));
+                Collections.sort(deletedId);
+                Collections.reverse(deletedId);
+
+                if (listGallery == null) listGallery = (ListGallery) mAdapter.getItem(0);
+                listGallery.validateFoto(deletedId); // validate foto in list gallery
+            }
+        }
     }
 
     @Override
@@ -263,5 +286,15 @@ public class DetailWisata extends AppCompatActivity implements RecyclerItemClick
     protected void onResume() {
         super.onResume();
         invalidateOptionsMenu();
+    }
+
+    @Override
+    public void onBackPressed() {
+        Intent i = new Intent();
+        i.putExtra("delete", delete);
+        i.putExtra("rate", rate);
+        if (delete) i.putIntegerArrayListExtra("deletedId", deletedId);
+        setResult(RESULT_OK, i);
+        finish();
     }
 }

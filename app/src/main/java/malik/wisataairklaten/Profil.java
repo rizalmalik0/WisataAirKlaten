@@ -1,17 +1,23 @@
 package malik.wisataairklaten;
 
+import android.content.Intent;
 import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.preference.PreferenceManager;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
+import android.view.Menu;
+import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.widget.LinearLayout;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 import malik.wisataairklaten.adapter.TabsPagerAdapter;
@@ -41,9 +47,13 @@ public class Profil extends AppCompatActivity implements CustomNestedScroll.OnBo
     CustomNestedScroll scroll;
     ListGallery listGallery;
     DataAPI api;
+    ArrayList<Integer> deletedId;
 
     boolean login;
-    int id_user;
+    boolean user = false;
+    boolean delete = false;
+    int id_user, count;
+    public static final int IS_USER = 0;
     String nama, username;
 
     @Override
@@ -61,17 +71,21 @@ public class Profil extends AppCompatActivity implements CustomNestedScroll.OnBo
 
         // intent data
         id_user = getIntent().getIntExtra("id_user", 0);
+        username = getIntent().getStringExtra("username");
+        nama = getIntent().getStringExtra("nama");
+
+        deletedId = new ArrayList<Integer>();
 
         // cek Login
-        if (id_user == 0) {
-            preferences = PreferenceManager.getDefaultSharedPreferences(this);
-            login = preferences.getBoolean("login", false);
+        preferences = PreferenceManager.getDefaultSharedPreferences(this);
+        login = preferences.getBoolean("login", false);
+        if (id_user == preferences.getInt("id_user", 0)) user = true;
+
+        if (id_user == IS_USER) {
+            user = true;
             id_user = preferences.getInt("id_user", 0);
             username = preferences.getString("username", "");
             nama = preferences.getString("nama", "");
-        } else {
-            username = getIntent().getStringExtra("username");
-            nama = getIntent().getStringExtra("nama");
         }
 
         //adapter
@@ -104,7 +118,8 @@ public class Profil extends AppCompatActivity implements CustomNestedScroll.OnBo
         api.getCountFoto(id_user, new Callback<JSONData<Integer>>() {
             @Override
             public void success(JSONData<Integer> integerJSONData, Response response) {
-                txtFotoUpload.setText(integerJSONData.getData() + " foto");
+                count = integerJSONData.getData();
+                txtFotoUpload.setText(count + " foto");
             }
 
             @Override
@@ -114,15 +129,9 @@ public class Profil extends AppCompatActivity implements CustomNestedScroll.OnBo
         });
     }
 
-    @Override
-    public boolean onOptionsItemSelected(MenuItem item) {
-        switch (item.getItemId()) {
-            case android.R.id.home: {
-                onBackPressed();
-            }
-        }
-
-        return true;
+    public void sortId() {
+        Collections.sort(deletedId);
+        Collections.reverse(deletedId);
     }
 
     @Override
@@ -130,5 +139,53 @@ public class Profil extends AppCompatActivity implements CustomNestedScroll.OnBo
         if (listGallery == null) listGallery = (ListGallery) pagerAdapter.getItem(0);
         if (!listGallery.load && !listGallery.last && listGallery.sukses && listGallery.foto.size() != 0)
             listGallery.loadMoreFotoUser(id_user, listGallery.foto.get(listGallery.foto.size() - 1).getId_foto());
+    }
+
+    @Override
+    public boolean onCreateOptionsMenu(Menu menu) {
+        if (user) {
+            MenuInflater inflater = getMenuInflater();
+            inflater.inflate(R.menu.menu_profil, menu);
+        }
+        return true;
+    }
+
+
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        switch (item.getItemId()) {
+            case android.R.id.home:
+                onBackPressed();
+                break;
+            case R.id.menu_edit:
+                Intent i = new Intent(this, Registrasi.class);
+                i.putExtra("edit", true);
+                startActivity(i);
+                break;
+        }
+
+        return true;
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+
+        if (user){
+            preferences = PreferenceManager.getDefaultSharedPreferences(this);
+            username = preferences.getString("username", "");
+            nama = preferences.getString("nama", "");
+            txtNama.setText(nama);
+            getSupportActionBar().setTitle(username);
+        }
+    }
+
+    @Override
+    public void onBackPressed() {
+        Intent i = new Intent();
+        i.putExtra("delete", delete);
+        if (delete) i.putIntegerArrayListExtra("deletedId", deletedId);
+        setResult(RESULT_OK, i);
+        finish();
     }
 }

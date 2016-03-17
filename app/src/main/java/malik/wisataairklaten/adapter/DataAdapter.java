@@ -9,8 +9,10 @@ import android.database.sqlite.SQLiteDatabase;
 import com.readystatesoftware.sqliteasset.SQLiteAssetHelper;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 
+import malik.wisataairklaten.model.Jarak;
 import malik.wisataairklaten.model.Wisata;
 
 /**
@@ -18,7 +20,7 @@ import malik.wisataairklaten.model.Wisata;
  */
 public class DataAdapter extends SQLiteAssetHelper {
     private static final String DATABASE_NAME = "WisataAirKlaten.db";
-    private static final int DATABASE_VERSION = 5;
+    private static final int DATABASE_VERSION = 7;
     private SQLiteDatabase mDb;
     Context mContext;
 
@@ -57,7 +59,7 @@ public class DataAdapter extends SQLiteAssetHelper {
         String[] columns = new String[]{"id_wisata", "nama_wisata", "kedalaman",
                 "fasilitas", "foto", "latitude", "longitude", "rating"};
 
-        Cursor cursor = mDb.query("wisata", columns, null, null, null, null, null);
+        Cursor cursor = mDb.query("wisata", columns, null, null, null, null, "rating desc");
 
         for (cursor.moveToFirst(); !cursor.isAfterLast(); cursor.moveToNext()) {
             Wisata w = new Wisata();
@@ -127,4 +129,19 @@ public class DataAdapter extends SQLiteAssetHelper {
         mDb.update("wisata", values, "id_wisata=" + id_wisata, null);
     }
 
+    public List<Jarak> getJarakWisata(int idWisataDari, String exclude) {
+        List<Jarak> jarak = new ArrayList<>();
+
+        String[] columns = new String[]{"jarak", "wisata_sampai"};
+
+        Cursor cursor = mDb.query("jarak", columns, "wisata_dari=" + idWisataDari + " AND wisata_sampai NOT IN (" + exclude + ")", null, null, null, null);
+        for (cursor.moveToFirst(); !cursor.isAfterLast(); cursor.moveToNext()) {
+            Jarak j = new Jarak();
+            j.setJarak(cursor.getInt(0));
+            j.setWisataSampai(cursor.getInt(1));
+            jarak.add(j);
+        }
+
+        return jarak;
+    }
 }

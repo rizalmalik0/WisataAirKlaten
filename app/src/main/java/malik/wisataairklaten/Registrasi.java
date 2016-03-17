@@ -13,7 +13,7 @@ import android.widget.CheckBox;
 import android.widget.EditText;
 import android.widget.LinearLayout;
 import android.widget.ProgressBar;
-import android.widget.Toast;
+import android.widget.TextView;
 
 import com.dd.processbutton.iml.ActionProcessButton;
 import com.google.gson.Gson;
@@ -49,14 +49,20 @@ public class Registrasi extends AppCompatActivity implements ProgressGenerator.O
     Toolbar toolbar;
     ActionProcessButton btnRegistrasi;
     ProgressBar pbUsername;
-    TextInputLayout wrapperUsername, wrapperPassword, wrapperNama, wrapperKonfPassword, wrapperEmail;
+    TextInputLayout wrapperUsername, wrapperPassword, wrapperNama, wrapperPasswordLama, wrapperKonfPassword, wrapperEmail;
     ProgressGenerator progressGenerator;
     DataAPI api;
     Validator validator;
     SharedPreferences preferences;
-    LinearLayout layoutRegistrasi;
+    LinearLayout layoutRegistrasi, layoutPasswordLama;
+    TextView txtPassword, txtKonfPassword;
+    EditText etPasswordLama;
 
     boolean userValid = false;
+    boolean edit = false;
+
+    String username, nama, email;
+    int idUser;
 
     @TextRule(order = 1, minLength = 5, maxLength = 20, message = "Masukkan Username (min 5)")
     EditText etUsername;
@@ -65,8 +71,8 @@ public class Registrasi extends AppCompatActivity implements ProgressGenerator.O
     EditText etNama;
     @Email(order = 3, message = "Masukkan valid Email")
     EditText etEmail;
-    @Password(order = 4, message = "Masukkan Password (min 6)")
-    @TextRule(order = 5, minLength = 6, maxLength = 20, message = "Masukkan Password (min 6)")
+    @Password(order = 4, message = "Masukkan Password (min 5)")
+    @TextRule(order = 5, minLength = 5, maxLength = 20, message = "Masukkan Password (min 5)")
     EditText etPassword;
     @ConfirmPassword(order = 6, message = "Password tidak cocok")
     EditText etKonfPassword;
@@ -78,6 +84,10 @@ public class Registrasi extends AppCompatActivity implements ProgressGenerator.O
         super.onCreate(savedInstanceState);
         setContentView(R.layout.registrasi);
 
+        // get intent data
+        edit = getIntent().getBooleanExtra("edit", false);
+
+        // get detail user
         preferences = PreferenceManager.getDefaultSharedPreferences(this);
 
         // init
@@ -92,15 +102,38 @@ public class Registrasi extends AppCompatActivity implements ProgressGenerator.O
         wrapperUsername = (TextInputLayout) findViewById(R.id.wrapperUsername);
         wrapperNama = (TextInputLayout) findViewById(R.id.wrapperNama);
         wrapperEmail = (TextInputLayout) findViewById(R.id.wrapperEmail);
+        wrapperPasswordLama = (TextInputLayout) findViewById(R.id.wrapperPasswordLama);
         wrapperPassword = (TextInputLayout) findViewById(R.id.wrapperPassword);
         wrapperKonfPassword = (TextInputLayout) findViewById(R.id.wrapperKonfPassword);
         cbSyarat = (CheckBox) findViewById(R.id.cbSyarat);
         layoutRegistrasi = (LinearLayout) findViewById(R.id.layout_registrasi);
+        layoutPasswordLama = (LinearLayout) findViewById(R.id.layout_password_lama);
+        txtPassword = (TextView) findViewById(R.id.txtPassword);
+        txtKonfPassword = (TextView) findViewById(R.id.txtKonfPassword);
+        etPasswordLama = (EditText) findViewById(R.id.etPasswordLama);
 
         //set view
         btnRegistrasi.setMode(ActionProcessButton.Mode.PROGRESS);
         setSupportActionBar(toolbar);
         getSupportActionBar().setDisplayHomeAsUpEnabled(true);
+
+        if (edit) {
+            idUser = preferences.getInt("id_user", 0);
+            username = preferences.getString("username", "");
+            nama = preferences.getString("nama", "");
+            email = preferences.getString("email", "");
+            userValid = true;
+
+            layoutPasswordLama.setVisibility(View.VISIBLE);
+            txtPassword.setText("Password Baru");
+            txtKonfPassword.setText("Konfirmasi Password Baru");
+            etUsername.setText(username);
+            etNama.setText(nama);
+            etEmail.setText(email);
+            cbSyarat.setChecked(true);
+            cbSyarat.setVisibility(View.GONE);
+            btnRegistrasi.setText("Ubah Profil");
+        }
 
         // koneksi
         Gson gson = new GsonBuilder()
@@ -145,7 +178,7 @@ public class Registrasi extends AppCompatActivity implements ProgressGenerator.O
                 @Override
                 public void failure(RetrofitError retrofitError) {
                     pbUsername.setVisibility(View.GONE);
-                    Toast.makeText(Registrasi.this, "Koneksi Gagal. Cek Koneksi Internet Anda", Toast.LENGTH_SHORT).show();
+                    Snackbar.make(layoutRegistrasi, "Koneksi Gagal", Snackbar.LENGTH_SHORT).show();
                 }
             });
         } else if (etUsername.getText().length() < 5) {
@@ -176,9 +209,10 @@ public class Registrasi extends AppCompatActivity implements ProgressGenerator.O
                     editor.putInt("id_user", userJSONData.getData().getId_user());
                     editor.putString("nama", userJSONData.getData().getNama());
                     editor.putString("username", userJSONData.getData().getUsername());
+                    editor.putString("email", userJSONData.getData().getEmail());
                     editor.commit();
                 } else {
-                    Toast.makeText(Registrasi.this, "Registrasi Gagal", Toast.LENGTH_SHORT).show();
+                    Snackbar.make(layoutRegistrasi, "Registrasi Gagal", Snackbar.LENGTH_SHORT).show();
                     btnRegistrasi.setProgress(-1);
                 }
             }
@@ -187,15 +221,72 @@ public class Registrasi extends AppCompatActivity implements ProgressGenerator.O
             public void failure(RetrofitError retrofitError) {
                 setFormEnabled(true);
                 btnRegistrasi.setProgress(-1);
-                Toast.makeText(Registrasi.this, "Koneksi Gagal " + retrofitError.getMessage(), Toast.LENGTH_SHORT).show();
+                Snackbar.make(layoutRegistrasi, "Koneksi Gagal", Snackbar.LENGTH_SHORT).show();
             }
         });
+    }
+
+    public void login() {
+        setFormEnabled(false);
+
+        api.login(username, etPasswordLama.getText().toString(), new Callback<JSONData<User>>() {
+            @Override
+            public void success(JSONData<User> userJSONData, Response response) {
+                if (userJSONData.getStatus() == 1) {
+                    btnRegistrasi.setProgress(95);
+                    updateUser();
+                } else {
+                    setFormEnabled(true);
+                    wrapperPasswordLama.setError("Password Salah");
+                    btnRegistrasi.setProgress(-1);
+                }
+            }
+
+            @Override
+            public void failure(RetrofitError retrofitError) {
+                setFormEnabled(true);
+                btnRegistrasi.setProgress(-1);
+                Snackbar.make(layoutRegistrasi, "Koneksi Gagal", Snackbar.LENGTH_SHORT).show();
+            }
+        });
+    }
+
+    public void updateUser() {
+        api.editUser(idUser, etUsername.getText().toString(), etNama.getText().toString(),
+                etEmail.getText().toString(), etPassword.getText().toString(), new Callback<JSONPesan>() {
+                    @Override
+                    public void success(JSONPesan jsonPesan, Response response) {
+                        setFormEnabled(true);
+
+                        if (jsonPesan.getStatus() == 1) {
+                            SharedPreferences.Editor editor = preferences.edit();
+                            editor.putString("nama", etNama.getText().toString());
+                            editor.putString("username", etUsername.getText().toString());
+                            editor.putString("email", etEmail.getText().toString());
+                            editor.commit();
+                            finish();
+                        } else if (jsonPesan.getPesan().equals("Tidak ada data diubah")) {
+                            finish();
+                        } else {
+                            btnRegistrasi.setProgress(-1);
+                            Snackbar.make(layoutRegistrasi, "Gagal mengubah data", Snackbar.LENGTH_SHORT).show();
+                        }
+                    }
+
+                    @Override
+                    public void failure(RetrofitError retrofitError) {
+                        setFormEnabled(true);
+                        btnRegistrasi.setProgress(-1);
+                        Snackbar.make(layoutRegistrasi, "Koneksi Gagal", Snackbar.LENGTH_SHORT).show();
+                    }
+                });
     }
 
     public void setFormEnabled(boolean enable) {
         etUsername.setEnabled(enable);
         etPassword.setEnabled(enable);
         etNama.setEnabled(enable);
+        if (edit) etPasswordLama.setEnabled(enable);
         etKonfPassword.setEnabled(enable);
         etEmail.setEnabled(enable);
         btnRegistrasi.setEnabled(enable);
@@ -205,13 +296,18 @@ public class Registrasi extends AppCompatActivity implements ProgressGenerator.O
         wrapperUsername.setErrorEnabled(false);
         wrapperPassword.setErrorEnabled(false);
         wrapperKonfPassword.setErrorEnabled(false);
+        wrapperPasswordLama.setErrorEnabled(false);
         wrapperEmail.setErrorEnabled(false);
         wrapperNama.setErrorEnabled(false);
     }
 
     @Override
     public void onComplete() {
-        registrasi();
+        if (edit) {
+            login();
+        } else {
+            registrasi();
+        }
     }
 
     @Override
@@ -223,7 +319,16 @@ public class Registrasi extends AppCompatActivity implements ProgressGenerator.O
     @Override
     public void onFocusChange(View v, boolean hasFocus) {
         if (!hasFocus) {
-            cekUsername();
+            if (edit) {
+                if (!etUsername.getText().toString().equals(username)) {
+                    cekUsername();
+                } else {
+                    wrapperUsername.setErrorEnabled(false);
+                    userValid = true;
+                }
+            } else {
+                cekUsername();
+            }
         }
     }
 

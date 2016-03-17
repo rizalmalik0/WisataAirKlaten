@@ -4,12 +4,16 @@ import android.content.Intent;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
 import android.support.v7.widget.RecyclerView;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 
 import org.solovyev.android.views.llm.LinearLayoutManager;
 
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.List;
 
 import malik.wisataairklaten.adapter.DataAdapter;
@@ -24,25 +28,28 @@ public class ListWisata extends Fragment implements RecyclerItemClickListener.On
     RecyclerView rvWisata;
     List<Wisata> wisata;
     RecyclerAdapter adapter;
+    DataAdapter data;
+
+    int tipe;
+    int id_wisata;
+
+    public static final int TIPE_UTAMA = 1;
+    public static final int TIPE_REKOMENDASI = 2;
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
-        DataAdapter data = new DataAdapter(getActivity());
-
-        if (getActivity() instanceof MenuUtama) {
-            data.open();
-            wisata = data.getSemuaWisata();
-            data.close();
-        } else {
-            data.open();
-            wisata = data.getRekomendasiWisata(getArguments().getInt("id_wisata"));
-            data.close();
-        }
+        // get status
+        id_wisata = (getArguments() == null) ? 0 : getArguments().getInt("id_wisata");
+        tipe = (getArguments() == null) ? TIPE_UTAMA : TIPE_REKOMENDASI;
 
         //adapter
+        wisata = new ArrayList<>();
+        data = new DataAdapter(getActivity());
         adapter = new RecyclerAdapter(getActivity(), wisata, RecyclerAdapter.TIPE_WISATA);
+
+        getWisata();
     }
 
     @Override
@@ -53,8 +60,8 @@ public class ListWisata extends Fragment implements RecyclerItemClickListener.On
 
         // adapter
         rvWisata.setLayoutManager(new LinearLayoutManager(rvWisata.getContext(), android.support.v7.widget.LinearLayoutManager.VERTICAL, false));
-        rvWisata.setAdapter(adapter);
         rvWisata.setNestedScrollingEnabled(false);
+        rvWisata.setAdapter(adapter);
 
         //listener
         rvWisata.addOnItemTouchListener(new RecyclerItemClickListener(getActivity(), rvWisata, this));
@@ -62,12 +69,37 @@ public class ListWisata extends Fragment implements RecyclerItemClickListener.On
         return v;
     }
 
+
+    public void getWisata() {
+        switch (tipe) {
+            case TIPE_UTAMA:
+                data.open();
+                wisata.clear();
+                wisata.addAll(data.getSemuaWisata());
+                data.close();
+                break;
+            case TIPE_REKOMENDASI:
+                data.open();
+                wisata.addAll(data.getRekomendasiWisata(id_wisata));
+                data.close();
+
+                // dijsktra
+                Dijkstra.with(getActivity(), wisata).from(id_wisata).getSemuaJarak();
+                sort(wisata);
+                break;
+        }
+
+        adapter.notifyItemRangeChanged(0, wisata.size());
+    }
+
     @Override
     public void onItemClick(View view, int position) {
-        Wisata w = wisata.get(position);
-        Intent i = new Intent(getActivity(), DetailWisata.class);
-        i.putExtra("id_wisata", w.getId_wisata());
-        startActivity(i);
+        if (position >= 0) {
+            Wisata w = wisata.get(position);
+            Intent i = new Intent(getActivity(), DetailWisata.class);
+            i.putExtra("id_wisata", w.getId_wisata());
+            startActivityForResult(i, 2);
+        }
     }
 
     @Override
@@ -83,4 +115,14 @@ public class ListWisata extends Fragment implements RecyclerItemClickListener.On
 
         return listWisata;
     }
+
+    private void sort(List<Wisata> wisata) {
+        Collections.sort(wisata, new Comparator<Wisata>() {
+            @Override
+            public int compare(Wisata w1, Wisata w2) {
+                return w1.getJarak() - w2.getJarak();
+            }
+        });
+    }
+
 }

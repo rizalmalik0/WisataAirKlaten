@@ -7,6 +7,7 @@ import malik.wisataairklaten.model.Foto;
 import malik.wisataairklaten.model.JSONData;
 import malik.wisataairklaten.model.JSONPesan;
 import malik.wisataairklaten.model.Review;
+import malik.wisataairklaten.model.Update;
 import malik.wisataairklaten.model.User;
 import malik.wisataairklaten.model.Wisata;
 import retrofit.Callback;
@@ -17,7 +18,6 @@ import retrofit.http.Multipart;
 import retrofit.http.POST;
 import retrofit.http.Part;
 import retrofit.http.PartMap;
-import retrofit.http.Query;
 import retrofit.mime.TypedFile;
 
 public interface DataAPI {
@@ -54,6 +54,9 @@ public interface DataAPI {
 
     @GET("/json/tampil_rating.php")
     public void getRating(Callback<List<Wisata>> wisata);
+
+    @GET("/json/tampil_version.php")
+    public void cekUpdate(Callback<Update> update);
 
     // Tampil Detail
     @FormUrlEncoded
@@ -124,6 +127,15 @@ public interface DataAPI {
                            @Field("isi") String isi,
                            Callback<JSONPesan> json);
 
+    @FormUrlEncoded
+    @POST("/json/ubah_user.php")
+    public void editUser(@Field("id_user") int id_user,
+                         @Field("username") String username,
+                         @Field("nama") String nama,
+                         @Field("email") String email,
+                         @Field("password") String password,
+                         Callback<JSONPesan> json);
+
     // JSON Object
     @FormUrlEncoded
     @POST("/json/count_foto_user.php")
@@ -133,15 +145,15 @@ public interface DataAPI {
     // upload
     @Multipart
     @POST("/json/upload.php")
-    public void uploadFoto(@Part("nama_foto") TypedFile foto,
+    public void uploadFoto(@Part("nama_foto") TypedFile file,
                            @PartMap Map<String, String> map,
-                           Callback<JSONPesan> pesan);
+                           Callback<JSONData<Foto>> foto);
 
     // hapus
-
     @FormUrlEncoded
     @POST("/json/hapus_foto_user.php")
     public void deleteFoto(@Field("id_foto") int id_foto,
                            @Field("id_user") int id_user,
+                           @Field("nama_foto") String nama_foto,
                            Callback<JSONPesan> pesan);
 }

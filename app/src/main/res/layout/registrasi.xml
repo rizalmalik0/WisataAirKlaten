@@ -98,7 +98,36 @@
                     android:paddingTop="0dp" />
             </android.support.design.widget.TextInputLayout>
 
+            <LinearLayout
+                android:id="@+id/layout_password_lama"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:visibility="gone">
+
+                <TextView
+                    android:id="@+id/txtPasswordLama"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Password Lama"
+                    android:textAppearance="?android:attr/textAppearanceMedium" />
+
+                <android.support.design.widget.TextInputLayout
+                    android:id="@+id/wrapperPasswordLama"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content">
+
+                    <EditText
+                        android:id="@+id/etPasswordLama"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:inputType="textPassword"
+                        android:paddingTop="0dp" />
+                </android.support.design.widget.TextInputLayout>
+            </LinearLayout>
+
             <TextView
+                android:id="@+id/txtPassword"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="Password"
@@ -118,6 +147,7 @@
             </android.support.design.widget.TextInputLayout>
 
             <TextView
+                android:id="@+id/txtKonfPassword"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="Konfirmasi Password"

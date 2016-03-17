@@ -5,6 +5,7 @@ package malik.wisataairklaten.model;
  */
 public class Wisata {
     int id_wisata;
+    int jarak;
     String nama_wisata;
     String kedalaman;
     String fasilitas;
@@ -22,6 +23,14 @@ public class Wisata {
 
     public void setId_wisata(int id_wisata) {
         this.id_wisata = id_wisata;
+    }
+
+    public int getJarak() {
+        return jarak;
+    }
+
+    public void setJarak(int jarak) {
+        this.jarak = jarak;
     }
 
     public String getNama_wisata() {
