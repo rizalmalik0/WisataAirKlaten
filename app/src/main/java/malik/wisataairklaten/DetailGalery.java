@@ -3,6 +3,7 @@ package malik.wisataairklaten;
 import android.content.Intent;
 import android.net.Uri;
 import android.os.Bundle;
+import android.os.Environment;
 import android.os.PersistableBundle;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
@@ -10,11 +11,18 @@ import android.view.MenuItem;
 import android.view.View;
 import android.widget.TextView;
 
+import com.jakewharton.picasso.OkHttp3Downloader;
+import com.squareup.picasso.MemoryPolicy;
 import com.squareup.picasso.Picasso;
+
+import java.io.File;
 
 import malik.wisataairklaten.api.VariableGlobal;
 import malik.wisataairklaten.model.Foto;
+import malik.wisataairklaten.view.ImageHandler;
 import malik.wisataairklaten.view.SquareImageView;
+import okhttp3.Cache;
+import okhttp3.OkHttpClient;
 
 /**
  * Created by Rizal Malik on 02/02/2016.
@@ -32,6 +40,7 @@ public class DetailGalery extends AppCompatActivity implements View.OnClickListe
         super.onCreate(savedInstanceState);
         setContentView(R.layout.detail_gallery);
 
+        // getintent data
         id_foto = getIntent().getIntExtra("id_foto", 0);
         nama_foto = getIntent().getStringExtra("nama_foto");
         dekripsi = getIntent().getStringExtra("deskripsi");
@@ -53,9 +62,9 @@ public class DetailGalery extends AppCompatActivity implements View.OnClickListe
 
         // set data
         if (tanggal.equals("Baru Saja"))
-            Picasso.with(this).load(Uri.parse(nama_foto)).fit().centerCrop().into(imgFoto);
+            ImageHandler.with(getApplicationContext()).load(Uri.parse(nama_foto)).fit().centerCrop().into(imgFoto);
         else
-            Picasso.with(this).load(VariableGlobal.URL_GAMBAR + id_user + "/" + nama_foto).fit().centerCrop().into(imgFoto);
+            ImageHandler.with(getApplicationContext()).load(VariableGlobal.URL_GAMBAR + id_user + "/" + nama_foto).fit().centerCrop().into(imgFoto);
 
         txtUsername.setText(username);
         txtDeskripsi.setText(dekripsi);

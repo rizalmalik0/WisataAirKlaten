@@ -2,11 +2,9 @@ package malik.wisataairklaten.adapter;
 
 import android.content.Context;
 import android.net.Uri;
+import android.os.Environment;
 import android.support.v7.widget.RecyclerView;
-import android.util.Log;
-import android.view.ContextMenu;
 import android.view.LayoutInflater;
-import android.view.Menu;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
@@ -18,19 +16,24 @@ import android.widget.RelativeLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.jakewharton.picasso.OkHttp3Downloader;
+import com.squareup.picasso.Callback;
+import com.squareup.picasso.NetworkPolicy;
 import com.squareup.picasso.Picasso;
 
+import java.io.File;
 import java.util.List;
-import java.util.Locale;
 
-import malik.wisataairklaten.Dijkstra;
 import malik.wisataairklaten.R;
 import malik.wisataairklaten.api.VariableGlobal;
 import malik.wisataairklaten.model.Fasilitas;
 import malik.wisataairklaten.model.Foto;
 import malik.wisataairklaten.model.Review;
 import malik.wisataairklaten.model.Wisata;
+import malik.wisataairklaten.view.ImageHandler;
 import malik.wisataairklaten.view.SquareImageView;
+import okhttp3.Cache;
+import okhttp3.OkHttpClient;
 
 /**
  * Created by Rizal Malik on 01/02/2016.
@@ -38,8 +41,8 @@ import malik.wisataairklaten.view.SquareImageView;
 public class RecyclerAdapter<T> extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
     List<T> listData;
     Context mContext;
-    int type;
 
+    int type;
     boolean isFooterVisible = true;
 
     public static final int TIPE_WISATA = 1;
@@ -109,25 +112,27 @@ public class RecyclerAdapter<T> extends RecyclerView.Adapter<RecyclerView.ViewHo
 
                     wisataHolder.txtNama.setText(w.getNama_wisata());
                     wisataHolder.rbWisata.setRating(w.getRating());
-                    Picasso.with(mContext).load("file:///android_asset/gambar/" + w.getFoto()).fit().centerCrop().into(wisataHolder.imgItem);
+                    ImageHandler.with(mContext).load("file:///android_asset/gambar/" + w.getFoto()).fit()
+                            .centerCrop().into(wisataHolder.imgItem);
                     break;
                 case TIPE_FOTO:
-                    FotoHolder fotoHolder = (FotoHolder) holder;
-                    Foto p = (Foto) listData.get(position);
+                    final FotoHolder fotoHolder = (FotoHolder) holder;
+                    final Foto p = (Foto) listData.get(position);
 
                     switch (p.getId_foto()) {
                         case -1:
                             fotoHolder.layoutUpload.setVisibility(View.VISIBLE);
                             fotoHolder.pbUpload.setVisibility(View.VISIBLE);
-                            Picasso.with(mContext).load(Uri.parse(p.getNama_foto())).placeholder(R.color.backWhite).fit().centerCrop().into(fotoHolder.imgItem);
+                            ImageHandler.with(mContext).load(Uri.parse(p.getNama_foto())).placeholder(R.color.backWhite).fit().centerCrop().into(fotoHolder.imgItem);
                             break;
                         case 0:
                             fotoHolder.layoutUpload.setVisibility(View.GONE);
                             fotoHolder.pbUpload.setVisibility(View.GONE);
-                            Picasso.with(mContext).load(R.drawable.add_foto).placeholder(R.color.backWhite).fit().into(fotoHolder.imgItem);
+                            ImageHandler.with(mContext).load(R.drawable.add_foto).fit().into(fotoHolder.imgItem);
                             break;
                         default:
-                            Picasso.with(mContext).load(VariableGlobal.URL_GAMBAR + p.getUser().getId_user() + "/" + p.getNama_foto()).placeholder(R.color.backWhite).fit().centerCrop().into(fotoHolder.imgItem);
+                            ImageHandler.with(mContext).load(VariableGlobal.URL_GAMBAR + p.getUser().getId_user() + "/" + p.getNama_foto())
+                                    .placeholder(R.color.backWhite).fit().centerCrop().into(fotoHolder.imgItem);
                             break;
                     }
                     break;
@@ -137,9 +142,10 @@ public class RecyclerAdapter<T> extends RecyclerView.Adapter<RecyclerView.ViewHo
 
                     if (position == 0) {
                         fasilitasHolder.txtItem.setText(f.getGambar());
-                        Picasso.with(mContext).load("file:///android_asset/icon/background.png").fit().into(fasilitasHolder.imgItem);
+                        ImageHandler.with(mContext).load("file:///android_asset/icon/background.png").fit().into(fasilitasHolder.imgItem);
                     } else {
-                        Picasso.with(mContext).load("file:///android_asset/icon/" + f.getGambar()).fit().into(fasilitasHolder.imgItem);
+                        ImageHandler.with(mContext).load("file:///android_asset/icon/" + f.getGambar()).error(R.drawable.fasilitas).fit()
+                                .into(fasilitasHolder.imgItem);
                     }
 
                     break;

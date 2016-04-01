@@ -326,7 +326,7 @@ public class ListReview extends Fragment implements View.OnClickListener, SwipeR
                     btnCobaLagi.setVisibility(View.GONE);
                     swReview.setRefreshing(true);
 
-                    if (statusReview)
+                    if (!statusReview)
                         getStatusReview();
                     else
                         getSemuaReview(id_user, id_wisata);

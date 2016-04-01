@@ -65,7 +65,6 @@ public class GeoPhoto extends Fragment implements OnMapReadyCallback, GoogleMap.
 
     @Override
     public void onMapReady(final GoogleMap googleMap) {
-        googleMap.getUiSettings().setScrollGesturesEnabled(false);
         googleMap.getUiSettings().setMapToolbarEnabled(false);
         googleMap.moveCamera(CameraUpdateFactory.newLatLngZoom(new LatLng(-7.613596, 110.635787), 13));
 

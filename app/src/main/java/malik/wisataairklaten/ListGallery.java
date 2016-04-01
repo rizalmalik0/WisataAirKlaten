@@ -27,10 +27,13 @@ import android.widget.FrameLayout;
 import android.widget.ImageView;
 import android.widget.ProgressBar;
 import android.widget.RelativeLayout;
+import android.widget.Toast;
 
 import com.balysv.materialripple.MaterialRippleLayout;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
+import com.jakewharton.picasso.OkHttp3Downloader;
+import com.squareup.picasso.MemoryPolicy;
 import com.squareup.picasso.Picasso;
 
 import java.io.File;
@@ -43,12 +46,15 @@ import malik.wisataairklaten.adapter.RecyclerAdapter;
 import malik.wisataairklaten.model.JSONData;
 import malik.wisataairklaten.model.JSONPesan;
 import malik.wisataairklaten.model.User;
+import malik.wisataairklaten.view.ImageHandler;
 import malik.wisataairklaten.view.RecyclerItemClickListener;
 import malik.wisataairklaten.api.DataAPI;
 import malik.wisataairklaten.api.DataDeserializer;
 import malik.wisataairklaten.api.VariableGlobal;
 import malik.wisataairklaten.model.Foto;
 import malik.wisataairklaten.view.WrappedGridLayoutManager;
+import okhttp3.Cache;
+import okhttp3.OkHttpClient;
 import retrofit.Callback;
 import retrofit.RestAdapter;
 import retrofit.RetrofitError;
@@ -68,12 +74,11 @@ public class ListGallery extends Fragment implements View.OnClickListener, Swipe
     AlertDialog dialog;
     List<Foto> foto;
     RecyclerAdapter adapter;
-    WrappedGridLayoutManager wrappedGridLayoutManager;
+    GridLayoutManager layoutManager;
     DataAPI api;
     SharedPreferences preferences;
     Uri imageUri;
     Snackbar snackbar;
-
     Profil profil;
 
     boolean load = true;
@@ -99,7 +104,7 @@ public class ListGallery extends Fragment implements View.OnClickListener, Swipe
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
-        foto = new ArrayList<Foto>();
+        foto = new ArrayList<>();
         adapter = new RecyclerAdapter(getActivity(), foto, RecyclerAdapter.TIPE_FOTO);
         preferences = PreferenceManager.getDefaultSharedPreferences(getActivity());
 
@@ -141,9 +146,9 @@ public class ListGallery extends Fragment implements View.OnClickListener, Swipe
         layoutGallery = (FrameLayout) v.findViewById(R.id.layout_list_galeri);
 
         // set view
-        wrappedGridLayoutManager = new WrappedGridLayoutManager(getActivity(), 3);
-        rvGallery.setLayoutManager(wrappedGridLayoutManager);
-        rvGallery.getItemAnimator().setSupportsChangeAnimations(false);
+        layoutManager = new GridLayoutManager(getActivity(), 3);
+        layoutManager.setAutoMeasureEnabled(true);
+        rvGallery.setLayoutManager(layoutManager);
 
         rvGallery.setAdapter(adapter);
         rvGallery.setNestedScrollingEnabled(false);
@@ -166,7 +171,7 @@ public class ListGallery extends Fragment implements View.OnClickListener, Swipe
         rvGallery.addOnItemTouchListener(new RecyclerItemClickListener(getActivity(), rvGallery, this));
 
         // load more
-        wrappedGridLayoutManager.setSpanSizeLookup(new GridLayoutManager.SpanSizeLookup() {
+        layoutManager.setSpanSizeLookup(new GridLayoutManager.SpanSizeLookup() {
             @Override
             public int getSpanSize(int position) {
                 if (adapter.getItemViewType(position) == RecyclerAdapter.TIPE_FOOTER)
@@ -180,8 +185,8 @@ public class ListGallery extends Fragment implements View.OnClickListener, Swipe
             public void onScrolled(RecyclerView recyclerView, int dx, int dy) {
                 if (dy > 0) //check for scroll down
                 {
-                    totalItemCount = wrappedGridLayoutManager.getItemCount();
-                    lastVisiblesItems = wrappedGridLayoutManager.findLastVisibleItemPosition();
+                    totalItemCount = layoutManager.getItemCount();
+                    lastVisiblesItems = layoutManager.findLastVisibleItemPosition();
 
                     if (!load && !last) {
                         if ((lastVisiblesItems + 3) >= totalItemCount) {
@@ -280,10 +285,9 @@ public class ListGallery extends Fragment implements View.OnClickListener, Swipe
             @Override
             public void success(List<Foto> fotos, Response response) {
                 load = false;
-                int lastCount = foto.size();
 
                 foto.addAll(posisi, fotos);
-                adapter.notifyItemRangeInserted(lastCount, fotos.size());
+                adapter.notifyItemRangeInserted(posisi, fotos.size());
 
                 // setView
                 swGallery.setRefreshing(false);
@@ -602,24 +606,35 @@ public class ListGallery extends Fragment implements View.OnClickListener, Swipe
             public void onClick(View v) {
                 dialog.dismiss();
 
-                deskripsi = etUpload.getText().toString();
+                // cek if load again
+                if (!foto.isEmpty()) {
+                    deskripsi = etUpload.getText().toString();
 
-                Foto f = new Foto();
-                f.setId_foto(-1);
-                f.setNama_foto(imageUri.toString());
-                f.setTanggal("Baru Saja");
-                f.setDeskripsi(etUpload.getText().toString());
-                f.setUser(new User(id_user, username, nama));
+                    Foto f = new Foto();
+                    f.setId_foto(-1);
+                    f.setNama_foto(imageUri.toString());
+                    f.setTanggal("Baru Saja");
+                    f.setDeskripsi(etUpload.getText().toString());
+                    f.setUser(new User(id_user, username, nama));
 
-                foto.set(0, f);
-                adapter.notifyItemChanged(0);
+                    foto.set(0, f);
+                    adapter.notifyItemChanged(0);
 
-                uploadFoto();
+                    uploadFoto();
+                } else {
+                    Snackbar.make(layoutGallery, "Koneksi gagal", Snackbar.LENGTH_LONG)
+                            .setAction("coba lagi", new View.OnClickListener() {
+                                @Override
+                                public void onClick(View v) {
+                                    showDialogUpload();
+                                }
+                            }).show();
+                }
             }
         });
 
         // set data
-        Picasso.with(getActivity()).load(imageUri).centerCrop().fit().into(imgUpload);
+        ImageHandler.with(getActivity()).load(imageUri).centerCrop().resize(500, 500).memoryPolicy(MemoryPolicy.NO_CACHE, MemoryPolicy.NO_STORE).into(imgUpload);
 
         //setview
         builder.setTitle("Upload Foto");
@@ -657,7 +672,7 @@ public class ListGallery extends Fragment implements View.OnClickListener, Swipe
 
             // store to tmp file
             String extr = Environment.getExternalStorageDirectory().toString();
-            File mFolder = new File(extr + "/TMPFOLDER");
+            File mFolder = new File(extr + "/WisataAirKlaten");
             if (!mFolder.exists()) mFolder.mkdir();
             String s = "tmp.jpg";
 
@@ -703,6 +718,7 @@ public class ListGallery extends Fragment implements View.OnClickListener, Swipe
     public void onItemClick(View view, int position) {
         if (position != foto.size()) {
             switch (foto.get(position).getId_foto()) {
+                // uploaded gambar
                 case -1:
                     if (!upload && !suksesUpload) {
                         Button btnUpload = (Button) view.findViewById(R.id.btnUpload);
@@ -728,6 +744,7 @@ public class ListGallery extends Fragment implements View.OnClickListener, Swipe
                     }
 
                     break;
+                // upload button
                 case 0:
                     if (login)
                         galeri();

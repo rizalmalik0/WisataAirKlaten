@@ -7,7 +7,7 @@ import malik.wisataairklaten.model.Foto;
 import malik.wisataairklaten.model.JSONData;
 import malik.wisataairklaten.model.JSONPesan;
 import malik.wisataairklaten.model.Review;
-import malik.wisataairklaten.model.Update;
+import malik.wisataairklaten.model.Version;
 import malik.wisataairklaten.model.User;
 import malik.wisataairklaten.model.Wisata;
 import retrofit.Callback;
@@ -56,7 +56,7 @@ public interface DataAPI {
     public void getRating(Callback<List<Wisata>> wisata);
 
     @GET("/json/tampil_version.php")
-    public void cekUpdate(Callback<Update> update);
+    public void cekUpdate(Callback<Version> update);
 
     // Tampil Detail
     @FormUrlEncoded

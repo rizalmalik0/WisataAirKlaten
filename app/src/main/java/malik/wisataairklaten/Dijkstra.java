@@ -22,7 +22,6 @@ public class Dijkstra {
     DataAdapter data;
 
     int idWisataMulai;
-    int totalJarak = 0;
 
     private Dijkstra(Context mContext, List<Wisata> wisata) {
         this.mContext = mContext;
@@ -40,6 +39,8 @@ public class Dijkstra {
     }
 
     public void getSemuaJarak() {
+        jarak.put(idWisataMulai, 0);
+
         data.open();
         getJarakMinimumWisata(idWisataMulai);
         data.close();
@@ -52,8 +53,6 @@ public class Dijkstra {
     }
 
     private void getJarakMinimumWisata(int idWisataDari) {
-        Jarak palingDekat = null;
-
         idWisataChecked.add(idWisataDari);
 
         // get not in
@@ -63,9 +62,11 @@ public class Dijkstra {
         jarakWisata = data.getJarakWisata(idWisataDari, notIn);
 
         // get jarak minimum
+        int jarakWisataDari = jarak.get(idWisataDari);
+
         for (Jarak j : jarakWisata) {
             Integer jarakLama = jarak.get(j.getWisataSampai());
-            int jarakBaru = totalJarak + j.getJarak();
+            int jarakBaru = jarakWisataDari + j.getJarak();
 
             if (jarakLama != null) {
                 // cek jarak terbaru lebih kecil dari jarak lama
@@ -73,28 +74,15 @@ public class Dijkstra {
                     jarak.put(j.getWisataSampai(), jarakBaru);
             } else
                 jarak.put(j.getWisataSampai(), jarakBaru);
-
-            if (palingDekat != null) {
-                // cek jarak paling dekat
-                if (j.getJarak() < palingDekat.getJarak())
-                    palingDekat = j;
-            } else
-                palingDekat = j;
         }
 
-        // cek last iteration
-        boolean last = jarakWisata.isEmpty();
-        if (!last) {
-            totalJarak += palingDekat.getJarak();
-            getJarakMinimumWisata(palingDekat.getWisataSampai());
-        } else
-            cekWisata();
+        cekWisataTerdekat();
     }
 
-    private void cekWisata() {
+    private void cekWisataTerdekat() {
         Jarak palingDekat = null;
 
-        // cek wisata yang belum cek
+        // cek wisata yang belum dikunjungi
         for (Integer id : jarak.keySet()) {
             if (!idWisataChecked.contains(id)) {
                 if (palingDekat != null) {
@@ -106,7 +94,6 @@ public class Dijkstra {
         }
 
         if (palingDekat != null) {
-            totalJarak = palingDekat.getJarak();
             getJarakMinimumWisata(palingDekat.getWisataSampai());
         }
     }

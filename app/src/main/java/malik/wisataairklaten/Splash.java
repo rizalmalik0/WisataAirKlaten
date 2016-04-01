@@ -25,11 +25,11 @@ public class Splash extends Activity {
 
         // cek lastupdate
         preferences = PreferenceManager.getDefaultSharedPreferences(this);
-        String last_update = preferences.getString("last_update", "");
+        int last_update = preferences.getInt("last_update", 0);
 
-        if (last_update.equals("")) {
+        if (last_update == 0) {
             SharedPreferences.Editor editor = preferences.edit();
-            editor.putString("last_update", "2016-03-06");
+            editor.putInt("last_update", 1);
             editor.commit();
         }
 

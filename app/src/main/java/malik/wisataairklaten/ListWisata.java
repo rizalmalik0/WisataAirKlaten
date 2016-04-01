@@ -89,7 +89,7 @@ public class ListWisata extends Fragment implements RecyclerItemClickListener.On
                 break;
         }
 
-        adapter.notifyItemRangeChanged(0, wisata.size());
+        if (adapter != null) adapter.notifyDataSetChanged();
     }
 
     @Override

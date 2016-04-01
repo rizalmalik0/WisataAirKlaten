@@ -4,6 +4,7 @@ import android.content.Intent;
 import android.content.SharedPreferences;
 import android.graphics.drawable.BitmapDrawable;
 import android.os.Bundle;
+import android.os.Environment;
 import android.preference.PreferenceManager;
 import android.support.design.widget.CollapsingToolbarLayout;
 import android.support.design.widget.TabLayout;
@@ -22,20 +23,25 @@ import android.widget.LinearLayout;
 import android.widget.PopupWindow;
 import android.widget.TextView;
 
+import com.jakewharton.picasso.OkHttp3Downloader;
 import com.squareup.picasso.Picasso;
 
+import java.io.File;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
 import malik.wisataairklaten.adapter.DataAdapter;
 import malik.wisataairklaten.adapter.RecyclerAdapter;
+import malik.wisataairklaten.view.ImageHandler;
 import malik.wisataairklaten.view.RecyclerItemClickListener;
 import malik.wisataairklaten.adapter.TabsPagerAdapter;
 import malik.wisataairklaten.model.Fasilitas;
 import malik.wisataairklaten.model.Wisata;
 import malik.wisataairklaten.view.CustomNestedScroll;
 import malik.wisataairklaten.view.CustomPager;
+import okhttp3.Cache;
+import okhttp3.OkHttpClient;
 
 /**
  * Created by Rizal Malik on 31/01/2016.
@@ -94,8 +100,8 @@ public class DetailWisata extends AppCompatActivity implements RecyclerItemClick
         data.close();
 
         // set data
-        Picasso.with(this).load("file:///android_asset/gambar/" + wisata.getFoto()).fit().centerCrop().into(imgWisata);
-        Picasso.with(this).load("file:///android_asset/map/" + wisata.getId_wisata() + ".png").placeholder(R.drawable.marker).fit().into(imgLokasi);
+        ImageHandler.with(getApplicationContext()).load("file:///android_asset/gambar/" + wisata.getFoto()).fit().centerCrop().into(imgWisata);
+        ImageHandler.with(getApplicationContext()).load("file:///android_asset/map/" + wisata.getId_wisata() + ".png").placeholder(R.drawable.marker).fit().into(imgLokasi);
         getFasilitas();
 
         // set view
@@ -107,9 +113,18 @@ public class DetailWisata extends AppCompatActivity implements RecyclerItemClick
         viewPager.setAdapter(mAdapter);
         tabLayout.setupWithViewPager(viewPager);
 
-        tabLayout.getTabAt(0).setIcon(R.drawable.icon_gallery);
-        tabLayout.getTabAt(1).setIcon(R.drawable.icon_rating);
-        tabLayout.getTabAt(2).setIcon(R.drawable.icon_rekomendasi);
+        // setview tab
+        View view1 = getLayoutInflater().inflate(R.layout.custom_tab, null);
+        view1.findViewById(R.id.icon).setBackgroundResource(R.drawable.icon_gallery);
+        tabLayout.getTabAt(0).setCustomView(view1);
+
+        View view2 = getLayoutInflater().inflate(R.layout.custom_tab, null);
+        view2.findViewById(R.id.icon).setBackgroundResource(R.drawable.icon_rating);
+        tabLayout.getTabAt(1).setCustomView(view2);
+
+        View view3 = getLayoutInflater().inflate(R.layout.custom_tab, null);
+        view3.findViewById(R.id.icon).setBackgroundResource(R.drawable.icon_rekomendasi);
+        tabLayout.getTabAt(2).setCustomView(view3);
 
         // adapter
         rvFasilitas.setLayoutManager(new LinearLayoutManager(rvFasilitas.getContext(), LinearLayoutManager.HORIZONTAL, false));
